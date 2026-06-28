@@ -1,0 +1,126 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - SpotIn</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/variables.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/auth.css" asp-append-version="true" />
+</head>
+<body class="auth-page">
+
+    <nav class="landing-nav">
+        <div class="landing-nav-inner">
+            <a asp-controller="Account" asp-action="Login" class="landing-logo-link">
+                <img src="~/Images/spotIN_logo_v2.svg" alt="SpotIn Logo" class="landing-logo-img" />
+            </a>
+            <div class="landing-nav-links">
+                <a href="#">Features</a>
+                <a href="#">Pricing</a>
+                <a href="#">About</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="landing-hero">
+        <div class="landing-hero-inner">
+
+            <!-- Left: hero content -->
+            <div class="landing-left">
+                <div class="landing-badge">
+                    <span class="landing-badge-dot"></span>
+                    Workspace booking made simple
+                </div>
+                <h1 class="landing-heading">
+                    Book your <span class="landing-heading-accent">perfect spot</span> in seconds
+                </h1>
+                <p class="landing-subtext">
+                    SpotIN helps teams manage shared workspaces, hot desks, and meeting rooms —
+                    with real-time availability and zero conflicts.
+                </p>
+                <div class="landing-stats">
+                    <div class="landing-stat">
+                        <div class="landing-stat-val">2,400+</div>
+                        <div class="landing-stat-label">Desks managed</div>
+                    </div>
+                    <div class="landing-stat">
+                        <div class="landing-stat-val">98%</div>
+                        <div class="landing-stat-label">Booking accuracy</div>
+                    </div>
+                    <div class="landing-stat">
+                        <div class="landing-stat-val">40+</div>
+                        <div class="landing-stat-label">Organizations</div>
+                    </div>
+                </div>
+                <div class="landing-features">
+                    <div class="landing-feat"><span class="landing-feat-dot"></span>Real-time availability</div>
+                    <div class="landing-feat"><span class="landing-feat-dot"></span>Floor map view</div>
+                    <div class="landing-feat"><span class="landing-feat-dot"></span>Team scheduling</div>
+                    <div class="landing-feat"><span class="landing-feat-dot"></span>Admin dashboard</div>
+                </div>
+                <div class="landing-floor">
+                    <div class="landing-floor-label">Live floor preview</div>
+                    <div class="slot-grid landing-slot-grid" id="landingSeats"></div>
+                    <div class="landing-legend">
+                        <div class="landing-leg"><span class="landing-leg-dot available"></span>Available</div>
+                        <div class="landing-leg"><span class="landing-leg-dot occupied"></span>Occupied</div>
+                        <div class="landing-leg"><span class="landing-leg-dot pending"></span>Pending</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: auth card with tab switcher -->
+            <div class="landing-right">
+                <div class="auth-card">
+              <div class="auth-tabs">
+                    <a class="auth-tab @(ViewContext.RouteData.Values["Action"]?.ToString() == "Login" ? "active" : "")" asp-action="Login" asp-controller="Account" style="text-decoration: none; text-align: center; display: inline-block;">Sign in</a>
+                    <a class="auth-tab @(ViewContext.RouteData.Values["Action"]?.ToString() == "SignUp" ? "active" : "")" asp-action="SignUp" asp-controller="Account" style="text-decoration: none; text-align: center; display: inline-block;">Create account</a>
+               </div>
+                    <div class="auth-form-body">
+                        @RenderBody()
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <footer class="auth-footer">
+        &copy; 2026 - SpotIn
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+
+    <script>
+        // Tab switcher
+        function spotinSwitchTab(id, el) {
+            document.querySelectorAll('.auth-tab').forEach(function (t) { t.classList.remove('active'); });
+            document.querySelectorAll('.auth-form-section').forEach(function (s) { s.classList.remove('active'); });
+            el.classList.add('active');
+            var section = document.getElementById('auth-' + id);
+            if (section) section.classList.add('active');
+        }
+
+        // Floor preview seats
+        (function () {
+            var states = ['available', 'available', 'available', 'occupied', 'occupied',
+                          'pending', 'available', 'occupied', 'available', 'available',
+                          'pending', 'available', 'occupied', 'available', 'available'];
+            var grid = document.getElementById('landingSeats');
+            if (!grid) return;
+            states.forEach(function (s, i) {
+                var d = document.createElement('div');
+                d.className = 'slot-box ' + s;
+                d.textContent = 'A' + (i + 1);
+                grid.appendChild(d);
+            });
+        })();
+    </script>
+
+</body>
+</html>

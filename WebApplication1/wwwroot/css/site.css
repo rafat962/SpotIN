@@ -1,0 +1,112 @@
+@import url('variables.css');
+
+/* ================================================
+   Base
+   ================================================ */
+body {
+    background-color: var(--bg-light);
+    color: var(--navy-dark);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+/* ================================================
+   Buttons
+   ================================================ */
+.btn-spotin-primary {
+    background-color: var(--primary-blue);
+    color: #ffffff;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 10px 20px;
+    font-weight: 500;
+    transition: var(--transition);
+    cursor: pointer;
+}
+
+    .btn-spotin-primary:hover {
+        background-color: var(--primary-hover);
+        color: #ffffff;
+    }
+
+/* ================================================
+   Cards
+   ================================================ */
+.spotin-card {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    transition: var(--transition);
+}
+
+    .spotin-card:hover {
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+
+/* ================================================
+   Slot grid
+   ================================================ */
+.slot-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 15px;
+    padding: 15px;
+}
+
+.slot-box {
+    aspect-ratio: 1;
+    border-radius: var(--radius-sm);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: white;
+    cursor: pointer;
+    transition: var(--transition);
+    border: none;
+}
+
+    .slot-box.available {
+        background-color: var(--seat-available);
+    }
+
+    .slot-box.occupied {
+        background-color: var(--seat-occupied);
+    }
+
+    .slot-box.pending {
+        background-color: var(--seat-pending);
+    }
+
+    .slot-box:hover {
+        transform: translateY(-3px);
+        filter: brightness(90%);
+    }
+
+/* ================================================
+   Sidebar
+   ================================================ */
+.spotin-sidebar {
+    background-color: var(--navy-dark);
+    color: #ffffff;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+    .spotin-sidebar .nav-link {
+        color: var(--text-muted);
+        border-radius: var(--radius-sm);
+        padding: 12px 15px;
+        margin-bottom: 5px;
+        transition: var(--transition);
+    }
+
+        .spotin-sidebar .nav-link.active,
+        .spotin-sidebar .nav-link:hover {
+            background-color: var(--primary-blue);
+            color: #ffffff !important;
+        }

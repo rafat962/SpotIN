@@ -1,0 +1,240 @@
+﻿@{
+    Layout = "_OwnerLayout";
+    ViewData["Title"]      = "Dashboard";
+    ViewData["PageTitle"]  = "Dashboard";
+    ViewData["Breadcrumb"] = "SpotIN · Owner Portal";
+}
+
+<!-- KPI Strip -->
+<div class="ow-kpi-row">
+    <div class="ow-kpi">
+        <div class="ow-kpi-icon blue">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="7" width="20" height="14" rx="2"/>
+                <path d="M16 7V5a2 2 0 0 0-4 0v2M8 7V5a2 2 0 0 1 4 0"/>
+            </svg>
+        </div>
+        <div>
+            <div class="ow-kpi-val">24</div>
+            <div class="ow-kpi-lbl">Total workspaces</div>
+            <div class="ow-kpi-delta up">↑ 2 this month</div>
+        </div>
+    </div>
+    <div class="ow-kpi">
+        <div class="ow-kpi-icon green">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+        </div>
+        <div>
+            <div class="ow-kpi-val">138</div>
+            <div class="ow-kpi-lbl">Bookings this month</div>
+            <div class="ow-kpi-delta up">↑ 12% vs last month</div>
+        </div>
+    </div>
+    <div class="ow-kpi">
+        <div class="ow-kpi-icon amber">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+            </svg>
+        </div>
+        <div>
+            <div class="ow-kpi-val">7</div>
+            <div class="ow-kpi-lbl">Pending requests</div>
+            <div class="ow-kpi-delta down">Needs attention</div>
+        </div>
+    </div>
+    <div class="ow-kpi">
+        <div class="ow-kpi-icon purple">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="1" x2="12" y2="23"/>
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+            </svg>
+        </div>
+        <div>
+            <div class="ow-kpi-val">EGP 18,400</div>
+            <div class="ow-kpi-lbl">Revenue this month</div>
+            <div class="ow-kpi-delta up">↑ 8% vs last month</div>
+        </div>
+    </div>
+</div>
+
+<!-- Main grid -->
+<div class="ow-dash-grid">
+
+    <!-- Left -->
+    <div class="ow-dash-left">
+
+        <!-- Recent bookings -->
+        <div class="ow-card">
+            <div class="ow-card-head">
+                <span class="ow-card-title">Recent Bookings</span>
+                <a href="/Owner/Bookings" class="ow-card-action">View all →</a>
+            </div>
+            <div class="ow-card-body" style="padding:0 18px;">
+                <table class="ow-table">
+                    <thead>
+                        <tr>
+                            <th>Client</th>
+                            <th>Workspace</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Ahmed Salah</td>
+                            <td>Desk A11 — Floor A</td>
+                            <td>Today · 09:00–17:00</td>
+                            <td><span class="ow-pill confirmed">Confirmed</span></td>
+                        </tr>
+                        <tr>
+                            <td>Sara Mohamed</td>
+                            <td>Meeting Room B2</td>
+                            <td>Tomorrow · 14:00–16:00</td>
+                            <td><span class="ow-pill pending">Pending</span></td>
+                        </tr>
+                        <tr>
+                            <td>Omar Kamal</td>
+                            <td>Focus Pod D1</td>
+                            <td>Jun 30 · 10:00–15:00</td>
+                            <td><span class="ow-pill confirmed">Confirmed</span></td>
+                        </tr>
+                        <tr>
+                            <td>Nour Hassan</td>
+                            <td>Desk C3 — Floor C</td>
+                            <td>Jun 30 · 08:00–12:00</td>
+                            <td><span class="ow-pill cancelled">Cancelled</span></td>
+                        </tr>
+                        <tr>
+                            <td>Youssef Ali</td>
+                            <td>Meeting Room A1</td>
+                            <td>Jul 1 · 11:00–13:00</td>
+                            <td><span class="ow-pill pending">Pending</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Incoming requests -->
+        <div class="ow-card">
+            <div class="ow-card-head">
+                <span class="ow-card-title">Incoming Requests</span>
+                <a href="/Owner/Requests" class="ow-card-action">View all →</a>
+            </div>
+            <div class="ow-card-body">
+                <div class="ow-req-item">
+                    <div class="ow-req-avatar">AS</div>
+                    <div class="ow-req-info">
+                        <div class="ow-req-name">Ahmed Salah</div>
+                        <div class="ow-req-meta">Desk B5 · Jun 29 · Full day</div>
+                    </div>
+                    <div class="ow-req-actions">
+                        <button class="ow-btn-sm approve">Approve</button>
+                        <button class="ow-btn-sm reject">Reject</button>
+                    </div>
+                </div>
+                <div class="ow-req-item">
+                    <div class="ow-req-avatar">NK</div>
+                    <div class="ow-req-info">
+                        <div class="ow-req-name">Nada Khaled</div>
+                        <div class="ow-req-meta">Meeting Room C1 · Jun 30 · 2h</div>
+                    </div>
+                    <div class="ow-req-actions">
+                        <button class="ow-btn-sm approve">Approve</button>
+                        <button class="ow-btn-sm reject">Reject</button>
+                    </div>
+                </div>
+                <div class="ow-req-item">
+                    <div class="ow-req-avatar">YA</div>
+                    <div class="ow-req-info">
+                        <div class="ow-req-name">Youssef Ali</div>
+                        <div class="ow-req-meta">Focus Pod D2 · Jul 1 · Morning</div>
+                    </div>
+                    <div class="ow-req-actions">
+                        <button class="ow-btn-sm approve">Approve</button>
+                        <button class="ow-btn-sm reject">Reject</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Right -->
+    <div class="ow-dash-right">
+
+        <!-- Quick stats -->
+        <div class="ow-card">
+            <div class="ow-card-head">
+                <span class="ow-card-title">Today's Overview</span>
+            </div>
+            <div class="ow-card-body">
+                <div class="ow-stat-row">
+                    <div class="ow-stat-mini">
+                        <div class="ow-stat-mini-val">18</div>
+                        <div class="ow-stat-mini-lbl">Occupied desks</div>
+                    </div>
+                    <div class="ow-stat-mini">
+                        <div class="ow-stat-mini-val">6</div>
+                        <div class="ow-stat-mini-lbl">Available desks</div>
+                    </div>
+                    <div class="ow-stat-mini">
+                        <div class="ow-stat-mini-val">3</div>
+                        <div class="ow-stat-mini-lbl">Active meetings</div>
+                    </div>
+                    <div class="ow-stat-mini">
+                        <div class="ow-stat-mini-val">75%</div>
+                        <div class="ow-stat-mini-lbl">Occupancy rate</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Workspace status -->
+        <div class="ow-card">
+            <div class="ow-card-head">
+                <span class="ow-card-title">Workspace Status</span>
+                <a href="/Owner/Workspaces" class="ow-card-action">Manage →</a>
+            </div>
+            <div class="ow-card-body">
+                <div class="ow-ws-item">
+                    <div class="ow-ws-dot open"></div>
+                    <div class="ow-ws-info">
+                        <div class="ow-ws-name">Floor A — Open Desks</div>
+                        <div class="ow-ws-sub">15 desks · 11 occupied</div>
+                    </div>
+                    <span class="ow-pill active">Open</span>
+                </div>
+                <div class="ow-ws-item">
+                    <div class="ow-ws-dot open"></div>
+                    <div class="ow-ws-info">
+                        <div class="ow-ws-name">Floor B — Meeting Rooms</div>
+                        <div class="ow-ws-sub">4 rooms · 2 in use</div>
+                    </div>
+                    <span class="ow-pill active">Open</span>
+                </div>
+                <div class="ow-ws-item">
+                    <div class="ow-ws-dot open"></div>
+                    <div class="ow-ws-info">
+                        <div class="ow-ws-name">Floor C — Focus Pods</div>
+                        <div class="ow-ws-sub">6 pods · 4 occupied</div>
+                    </div>
+                    <span class="ow-pill active">Open</span>
+                </div>
+                <div class="ow-ws-item">
+                    <div class="ow-ws-dot closed"></div>
+                    <div class="ow-ws-info">
+                        <div class="ow-ws-name">Rooftop Lounge</div>
+                        <div class="ow-ws-sub">Temporarily closed</div>
+                    </div>
+                    <span class="ow-pill cancelled">Closed</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>

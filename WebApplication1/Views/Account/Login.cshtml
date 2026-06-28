@@ -1,0 +1,53 @@
+﻿@model WebApplication1.Models.ViewModels.LoginViewModel
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Sign In";
+}
+
+<div class="auth-form-section active" id="auth-login">
+    <div class="auth-form-title">Welcome back</div>
+    <div class="auth-form-sub">Sign in to manage your spaces and bookings</div>
+
+    @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
+    {
+        <div class="alert alert-danger" style="font-size:13px; padding: 10px 14px; border-radius: var(--radius-sm); margin-bottom: 16px; color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb;">
+            @ViewBag.ErrorMessage
+        </div>
+    }
+
+    <!-- نربطه بالـ Action الجديد LoginForm -->
+    <form asp-controller="Account" asp-action="LoginForm" method="post">
+        @Html.AntiForgeryToken()
+
+        <div class="auth-field">
+            <label asp-for="Email">Work email</label>
+            <input type="email" asp-for="Email" placeholder="name@company.com" required />
+        </div>
+
+        <div class="auth-field">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <label asp-for="Password">Password</label>
+                <a href="#" class="auth-forgot-link" style="font-size: 13px; text-decoration: none; color: var(--primary-blue);">Forgot?</a>
+            </div>
+            <input type="password" asp-for="Password" placeholder="Enter your password" required />
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 20px;">
+            <input type="checkbox" asp-for="RememberMe" id="RememberMe" style="width: auto; margin: 0;" />
+            <label for="RememberMe" style="margin: 0; font-size: 13px; color: #4b5563; font-weight: 500;">Remember me on this device</label>
+        </div>
+
+        <button type="submit" class="auth-btn-submit">Sign in</button>
+    </form>
+
+    <div class="auth-divider">or</div>
+
+    <button class="auth-btn-google">
+        <!-- SVG الـ Google سيبها زي ما هي -->
+        Continue with Google
+    </button>
+
+    <div class="auth-form-footer">
+        Don't have an account? <a asp-controller="Account" asp-action="SignUp">Join SpotIN</a>
+    </div>
+</div>

@@ -1,0 +1,99 @@
+﻿@model WebApplication1.Models.ViewModels.WorkspaceSetupViewModel
+@{
+    Layout = "_Layout"; 
+    ViewData["Title"] = "Workspace Setup";
+}
+
+<!-- استخدام نفس كلاس الـ Auth Form مع جعلها نشطة لتأخذ نفس مظهر الكارت الافتراضي -->
+<div class="auth-form-section active" id="auth-setup">
+    <div class="auth-form-title">Almost there!</div>
+    <div class="auth-form-sub">Tell us about your workspace to customize your dashboard</div>
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger" style="font-size:13px; padding: 10px 14px; border-radius: var(--radius-sm); margin-bottom: 16px; color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb;">
+            <div asp-validation-summary="All" style="list-style: none; padding: 0; margin: 0;"></div>
+        </div>
+    }
+
+    <form asp-controller="Account" asp-action="SaveWorkspace" method="post">
+        @Html.AntiForgeryToken()
+
+        <div style="font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--primary-blue); margin-bottom: 14px; padding-bottom: 4px; border-bottom: 1px solid var(--border-color);">
+            1. Space Details & Location
+        </div>
+        
+        <div class="auth-field">
+            <label asp-for="Name">Workspace Name</label>
+            <input type="text" asp-for="Name" placeholder="e.g., SpotIn Hub Dokki" required />
+            <span asp-validation-for="Name" style="color: #dc2626; font-size: 12px; margin-top: 4px; display: block;"></span>
+        </div>
+
+        <div class="auth-field">
+            <label asp-for="Address">Full Address</label>
+            <input type="text" asp-for="Address" placeholder="e.g., 14 El-Batal Ahmed Abdel Aziz, Giza" required />
+            <span asp-validation-for="Address" style="color: #dc2626; font-size: 12px; margin-top: 4px; display: block;"></span>
+        </div>
+
+        <div class="auth-field-row" style="margin-bottom: 16px;">
+            <div class="auth-field" style="margin-bottom: 0;">
+                <label asp-for="Latitude">Latitude (خط العرض)</label>
+                <input type="number" step="any" asp-for="Latitude" placeholder="30.0444" required />
+            </div>
+            <div class="auth-field" style="margin-bottom: 0;">
+                <label asp-for="Longitude">Longitude (خط الطول)</label>
+                <input type="number" step="any" asp-for="Longitude" placeholder="31.2357" required />
+            </div>
+        </div>
+
+        <!-- ══ Section 2: Capacity ══ -->
+        <div style="font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--primary-blue); margin: 24px 0 14px 0; padding-bottom: 4px; border-bottom: 1px solid var(--border-color);">
+            2. Capacity
+        </div>
+        
+        <div class="auth-field-row" style="margin-bottom: 16px;">
+            <div class="auth-field" style="margin-bottom: 0;">
+                <label asp-for="TotalTables">Standard Tables</label>
+                <input type="number" asp-for="TotalTables" min="0" placeholder="0" required />
+            </div>
+            <div class="auth-field" style="margin-bottom: 0;">
+                <label asp-for="TotalRooms">Meeting Rooms</label>
+                <input type="number" asp-for="TotalRooms" min="0" placeholder="0" required />
+            </div>
+        </div>
+
+        <!-- ══ Section 3: Amenities ══ -->
+        <div style="font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--primary-blue); margin: 24px 0 14px 0; padding-bottom: 4px; border-bottom: 1px solid var(--border-color);">
+            3. Amenities
+        </div>
+        
+        <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; background: #FAFBFC; padding: 16px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <input type="checkbox" asp-for="HasAirConditioning" id="ac" style="width: auto; margin: 0; cursor: pointer;" />
+                <label for="ac" style="margin: 0; font-size: 13px; color: var(--navy-dark); font-weight: 500; cursor: pointer;">Air Conditioning (مكيف هواء)</label>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <input type="checkbox" asp-for="HasWiFi" id="wifi" style="width: auto; margin: 0; cursor: pointer;" />
+                <label for="wifi" style="margin: 0; font-size: 13px; color: var(--navy-dark); font-weight: 500; cursor: pointer;">High-Speed WiFi (إنترنت سريع)</label>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <input type="checkbox" asp-for="HasDrinksAndCafeteria" id="drinks" style="width: auto; margin: 0; cursor: pointer;" />
+                <label for="drinks" style="margin: 0; font-size: 13px; color: var(--navy-dark); font-weight: 500; cursor: pointer;">Drinks & Cafeteria (بوفيه مشروبات)</label>
+            </div>
+        </div>
+
+        <div class="auth-field" style="margin-bottom: 24px;">
+            <label asp-for="Description">Description (Optional)</label>
+            <textarea asp-for="Description" placeholder="Write any extra details about your space..." rows="3" 
+                      style="width: 100%; padding: 10px 13px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: 14px; font-family: inherit; background: #FAFBFC; color: var(--navy-dark); outline: none; transition: var(--transition); box-sizing: border-box; resize: vertical;"></textarea>
+        </div>
+
+        <button type="submit" class="auth-btn-submit">Create Account & Workspace</button>
+    </form>
+
+    <div class="auth-form-footer" style="margin-top: 20px;">
+        Need help? <a href="#">Contact SpotIn Support</a>
+    </div>
+</div>

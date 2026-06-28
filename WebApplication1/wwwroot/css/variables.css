@@ -1,0 +1,28 @@
+:root {
+    /* Brand */
+    --primary-blue: #2B579A;
+    --primary-hover: #1F3F72;
+    --light-blue: #E8F0FE;
+    --light-blue-border: #C8DAFB;
+    /* Surfaces */
+    --navy-dark: #1E293B;
+    --bg-light: #F8FAFC;
+    --border-color: #E2E8F0;
+    /* Text */
+    --text-muted: #64748B;
+    --text-footer: #94A3B8;
+    /* Seat states */
+    --seat-available: #10B981;
+    --seat-occupied: #EF4444;
+    --seat-pending: #F59E0B;
+    /* Radii */
+    --radius-sm: 6px;
+    --radius-md: 12px;
+    /* Misc */
+    --transition: all 0.3s ease;
+    /* Auth / landing */
+    --auth-bg: #F8FAFC;
+    --auth-card-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+    --auth-card-padding: 40px;
+    --auth-max-width: 440px;
+}

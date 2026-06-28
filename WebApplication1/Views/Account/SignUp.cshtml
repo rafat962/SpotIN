@@ -1,0 +1,117 @@
+﻿@using WebApplication1.Models.ViewModel.Account
+@model RegisterViewModel
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Sign Up";
+}
+
+
+<div class="auth-form-section active" id="auth-signup">
+    <div class="auth-form-title">Join SpotIN</div>
+    <div class="auth-form-sub">Set up your account to start booking</div>
+
+    <!-- Account Type Toggle Switch -->
+    <div class="role-toggle-container mb-2">
+        <div class="role-toggle-bg">
+            <input type="radio" id="roleClient" name="AccountType" value="Client" checked onchange="toggleRegistrationRole('Client')" />
+            <label for="roleClient" class="role-toggle-label">
+                <span>Client</span>
+            </label>
+
+            <input type="radio" id="roleOwner" name="AccountType" value="Owner" onchange="toggleRegistrationRole('Owner')" />
+            <label for="roleOwner" class="role-toggle-label">
+                <span>Workspace Owner</span>
+            </label>
+            
+            <span class="role-toggle-slider"></span>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
+    {
+        <div class="alert alert-danger" style="font-size:13px; padding: 10px 14px; border-radius: var(--radius-sm); margin-bottom: 16px; color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb;">
+            @ViewBag.ErrorMessage
+        </div>
+    }
+
+    <form asp-controller="Account" asp-action="Register" method="post">
+        @Html.AntiForgeryToken()
+        
+        <!-- Hidden input to submit the selected role to the backend -->
+        <input type="hidden" asp-for="Role" id="SelectedRole" value="Client" />
+
+        <div class="auth-field-row">
+            <div class="auth-field">
+                <label asp-for="FirstName">First name</label>
+                <input type="text" asp-for="FirstName" placeholder="Ahmed" required />
+            </div>
+            <div class="auth-field">
+                <label asp-for="LastName">Last name</label>
+                <input type="text" asp-for="LastName" placeholder="Hassan" required />
+            </div>
+        </div>
+
+        <div class="auth-field">
+            <label asp-for="Email">Work email</label>
+            <input type="email" asp-for="Email" placeholder="name@company.com" required />
+        </div>
+
+        <!-- This field will toggle dynamically -->
+        <div class="auth-field transition-field" id="organizationField" style="display: none; opacity: 0; max-height: 0; overflow: hidden; margin-bottom: 0;">
+            <label asp-for="Organization">Organization</label>
+            <input type="text" asp-for="Organization" id="Organization" placeholder="Company name" />
+        </div>
+
+        <div class="auth-field">
+            <label asp-for="Password">Password</label>
+            <input type="password" asp-for="Password" placeholder="Min. 4 characters" required minlength="4" />
+        </div>
+
+        <button type="submit" class="auth-btn-submit">Create account</button>
+    </form>
+
+    <div class="auth-divider">or</div>
+
+    <button class="auth-btn-google">
+        <svg width="16" height="16" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 01-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>
+            <path d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 009 18z" fill="#34A853"/>
+            <path d="M3.964 10.706A5.41 5.41 0 013.682 9c0-.593.102-1.17.282-1.706V4.962H.957A8.996 8.996 0 000 9c0 1.452.348 2.827.957 4.038l3.007-2.332z" fill="#FBBC05"/>
+            <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 00.957 4.962L3.964 7.294C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
+        </svg>
+        Continue with Google
+    </button>
+
+    <div class="auth-form-footer">
+        Already have an account? <a asp-controller="Account" asp-action="Login">Sign in</a>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function toggleRegistrationRole(role) {
+            document.getElementById('SelectedRole').value = role;
+            var orgField = document.getElementById('organizationField');
+            var orgInput = document.getElementById('Organization');
+            
+            if (role === 'Owner') {
+                orgField.style.display = 'block';
+                setTimeout(() => {
+                    orgField.style.opacity = '1';
+                    orgField.style.maxHeight = '100px';
+                    orgField.style.marginBottom = '20px';
+                }, 10);
+                orgInput.setAttribute('required', 'required');
+            } else {
+                orgField.style.opacity = '0';
+                orgField.style.maxHeight = '0';
+                orgField.style.marginBottom = '0';
+                orgInput.removeAttribute('required');
+                orgInput.value = '';
+                setTimeout(() => {
+                    orgField.style.display = 'none';
+                }, 300);
+            }
+        }
+    </script>
+}
