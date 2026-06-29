@@ -1,29 +1,21 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using WebApplication1.Models.Domain.User;
 using WebApplication1.Models.ViewModel.Account;
 using WebApplication1.Models.ViewModels;
+using WebApplication1.Repositories;
+using WebApplication1.Repositories.Auth;
 
 namespace WebApplication1.Controllers.Auth
 {
     public class AccountController : Controller
     {
+        private readonly IAuthRepositorie _authRepo;
 
-
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly SignInManager<ApplicationUser> _signInManager;
-        private readonly RoleManager<IdentityRole> _roleManager;
-
-        public AccountController(
-            UserManager<ApplicationUser> userManager,
-            SignInManager<ApplicationUser> signInManager,
-            RoleManager<IdentityRole> roleManager)
+        // حقن الـ Repository فقط هنا
+        public AccountController(IAuthRepositorie authRepo)
         {
-            _userManager = userManager;
-            _signInManager = signInManager;
-            _roleManager = roleManager;
+            _authRepo = authRepo;
         }
-
 
         [HttpGet]
         public IActionResult Login()
@@ -42,26 +34,20 @@ namespace WebApplication1.Controllers.Auth
                 return View("Login", model);
             }
 
-            // 1. البحث عن المستخدم بواسطة الإيميل
-            var user = await _userManager.FindByEmailAsync(model.Email);
+            var user = await _authRepo.FindByEmailAsync(model.Email);
             if (user == null)
             {
                 ViewBag.ErrorMessage = "Invalid email or password.";
                 return View("Login", model);
             }
 
-            var result = await _signInManager.PasswordSignInAsync(user.UserName, model.Password, model.RememberMe, lockoutOnFailure: false);
+            var result = await _authRepo.PasswordSignInAsync(user.UserName, model.Password, model.RememberMe);
 
             if (result.Succeeded)
             {
-                var customClaims = new[] {
-                    new System.Security.Claims.Claim("FirstName", user.FirstName ?? ""),
-                    new System.Security.Claims.Claim("LastName", user.LastName ?? "")
-                };
+                await _authRepo.SignInWithClaimsAsync(user, model.RememberMe, user.FirstName, user.LastName);
 
-                await _signInManager.SignInWithClaimsAsync(user, isPersistent: model.RememberMe, customClaims);
-
-                var roles = await _userManager.GetRolesAsync(user);
+                var roles = await _authRepo.GetUserRolesAsync(user);
                 if (roles.Contains("Owner"))
                 {
                     return RedirectToAction("Index", "Owner");
@@ -78,11 +64,12 @@ namespace WebApplication1.Controllers.Auth
             return View("Login", model);
         }
 
-
+        [HttpGet]
         public IActionResult SignUp()
         {
-            return View("SignUp"); 
+            return View("SignUp");
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(RegisterViewModel model)
@@ -99,7 +86,7 @@ namespace WebApplication1.Controllers.Auth
                 return View("SignUp", model);
             }
 
-            var userExists = await _userManager.FindByEmailAsync(model.Email);
+            var userExists = await _authRepo.FindByEmailAsync(model.Email);
             if (userExists != null)
             {
                 ViewBag.ErrorMessage = "This email address is already registered.";
@@ -114,24 +101,20 @@ namespace WebApplication1.Controllers.Auth
                 Email = model.Email
             };
 
-            var result = await _userManager.CreateAsync(user, model.Password);
+            var result = await _authRepo.CreateUserAsync(user, model.Password);
 
             if (result.Succeeded)
             {
                 string assignedRole = model.Role == "Owner" ? "Owner" : "Client";
 
-                if (await _roleManager.RoleExistsAsync(assignedRole))
+                if (await _authRepo.RoleExistsAsync(assignedRole))
                 {
-                    await _userManager.AddToRoleAsync(user, assignedRole);
+                    await _authRepo.AddToRoleAsync(user, assignedRole);
                 }
 
                 if (assignedRole == "Client")
                 {
-                    var customClaims = new[] {
-                        new System.Security.Claims.Claim("FirstName", user.FirstName),
-                        new System.Security.Claims.Claim("LastName", user.LastName)
-                    };
-                    await _signInManager.SignInWithClaimsAsync(user, isPersistent: true, customClaims);
+                    await _authRepo.SignInWithClaimsAsync(user, isPersistent: true, user.FirstName, user.LastName);
                     return RedirectToAction("Index", "Client");
                 }
 
@@ -150,14 +133,10 @@ namespace WebApplication1.Controllers.Auth
         [HttpGet]
         public async Task<IActionResult> Logout()
         {
-            await _signInManager.SignOutAsync();
-
+            await _authRepo.SignOutAsync();
             return RedirectToAction("Login", "Account");
         }
 
-
-
-        // 1. عرض صفحة الـ Workspace Setup بالـ Layout الأساسي (GET)
         [HttpGet]
         public IActionResult SetupWorkspace()
         {
@@ -177,14 +156,7 @@ namespace WebApplication1.Controllers.Auth
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SaveWorkspace(WorkspaceSetupViewModel model)
         {
-            if (!ModelState.IsValid)
-            {
-                TempData.Keep("PendingOwnerId");
-                TempData.Keep("FirstName");
-                TempData.Keep("LastName");
-                return View("SetupWorkspace", model);
-            }
-
+            // 1. استرجاع البيانات الحالية من الـ TempData
             var userId = TempData["PendingOwnerId"]?.ToString();
             var firstName = TempData["FirstName"]?.ToString() ?? "";
             var lastName = TempData["LastName"]?.ToString() ?? "";
@@ -194,29 +166,34 @@ namespace WebApplication1.Controllers.Auth
                 return RedirectToAction("SignUp");
             }
 
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user != null)
+            if (!ModelState.IsValid)
             {
-                // 2. TODO: هنا هتعمل الحفظ في جدول الـ Workspaces وتمرر الـ userId كـ Foreign Key
-                // var workspace = new Workspace { Name = model.Name, UserId = userId, ... };
-                // await _context.Workspaces.AddAsync(workspace);
-                // await _context.SaveChangesAsync();
+                TempData.Keep("PendingOwnerId");
+                TempData.Keep("FirstName");
+                TempData.Keep("LastName");
+                return View("SetupWorkspace", model);
             }
 
-            var customClaims = new[] {
-                new System.Security.Claims.Claim("FirstName", firstName),
-                new System.Security.Claims.Claim("LastName", lastName)
-            };
+            var user = await _authRepo.FindByIdAsync(userId);
+            if (user == null)
+            {
+                return RedirectToAction("SignUp");
+            }
 
-            await _signInManager.SignInWithClaimsAsync(user, isPersistent: true, customClaims);
+            var isSaved = await _authRepo.CreateWorkspaceAsync(model, userId);
+
+            if (!isSaved)
+            {
+                ModelState.AddModelError(string.Empty, "Something went wrong while creating the workspace. Please try again.");
+                TempData.Keep("PendingOwnerId");
+                TempData.Keep("FirstName");
+                TempData.Keep("LastName");
+                return View("SetupWorkspace", model);
+            }
+
+            await _authRepo.SignInWithClaimsAsync(user, isPersistent: true, firstName, lastName);
 
             return RedirectToAction("Index", "Owner");
         }
-
-
-
-
-
-
     }
 }

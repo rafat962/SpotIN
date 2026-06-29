@@ -12,7 +12,7 @@
     <!-- ══════ SIDEBAR ══════ -->
     <aside class="ow-sidebar">
 
-        <a class="ow-brand" href="/Owner">
+        <a class="ow-brand"  asp-controller="Account" asp-action="Login" >
             <div class="ow-brand-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
@@ -28,7 +28,7 @@
         <nav class="ow-nav">
             <div class="ow-nav-section">
                 <div class="ow-nav-label">Overview</div>
-                <a href="/Owner" class="ow-nav-item">
+                <a asp-controller="Account" asp-action="Login"  class="ow-nav-item">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
                         <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
@@ -39,14 +39,14 @@
 
             <div class="ow-nav-section">
                 <div class="ow-nav-label">Management</div>
-                <a href="/Owner/Workspaces" class="ow-nav-item">
+                <a asp-controller="Account" asp-action="Login"  class="ow-nav-item">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <rect x="2" y="7" width="20" height="14" rx="2"/>
                         <path d="M16 7V5a2 2 0 0 0-4 0v2M8 7V5a2 2 0 0 1 4 0"/>
                     </svg>
                     Manage Workspaces
                 </a>
-                <a href="/Owner/Invoices" class="ow-nav-item">
+                <a  asp-controller="Account" asp-action="Login"  class="ow-nav-item">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                         <polyline points="14 2 14 8 20 8"/>
@@ -55,7 +55,7 @@
                     </svg>
                     Invoices
                 </a>
-                <a href="/Owner/Requests" class="ow-nav-item">
+                <a asp-controller="Account" asp-action="Login"  class="ow-nav-item">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M18 8h1a4 4 0 0 1 0 8h-1"/>
                         <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/>
@@ -69,7 +69,7 @@
                         <span class="ow-nav-badge">@ViewBag.PendingCount</span>
                     }
                 </a>
-                <a href="/Owner/Menu" class="ow-nav-item">
+                <a  asp-controller="Account" asp-action="Login"  class="ow-nav-item">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="8" y1="6" x2="21" y2="6"/>
                         <line x1="8" y1="12" x2="21" y2="12"/>
@@ -84,14 +84,14 @@
 
             <div class="ow-nav-section">
                 <div class="ow-nav-label">Account</div>
-                <a href="/Owner/Profile" class="ow-nav-item">
+                <a  asp-controller="Account" asp-action="Login"  class="ow-nav-item">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                         <circle cx="12" cy="7" r="4"/>
                     </svg>
                     Profile
                 </a>
-                <a href="/Account/Logout" class="ow-nav-item ow-nav-item--danger">
+                <a asp-controller="Account" asp-action="Logout"  class="ow-nav-item ow-nav-item--danger">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
                         <polyline points="16 17 21 12 16 7"/>

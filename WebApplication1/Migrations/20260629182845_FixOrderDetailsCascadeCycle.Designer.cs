@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WebApplication1.Data;
 
@@ -11,9 +12,11 @@ using WebApplication1.Data;
 namespace WebApplication1.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260629182845_FixOrderDetailsCascadeCycle")]
+    partial class FixOrderDetailsCascadeCycle
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -533,7 +536,7 @@ namespace WebApplication1.Migrations
                         {
                             Id = "3c4d5e6f-7a8b-9c0d-1e2f-3a4b5c6d7e8f",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "ec48c453-379e-477f-b131-9346c9593567",
+                            ConcurrencyStamp = "456c4ada-6705-4e8e-ac2a-cfb285cfbe42",
                             Email = "owner@spotin.com",
                             EmailConfirmed = true,
                             FirstName = "Workspace",
@@ -541,9 +544,9 @@ namespace WebApplication1.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "OWNER@SPOTIN.COM",
                             NormalizedUserName = "OWNER@SPOTIN.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEEN6+jV3BMTYtqna3t9EU/HbIDcf5CWjqF4MF3T9RFmSQFts5pRweD6nARdpBsiqRA==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEIjwWWrkdfyqnOZd7UPsrLEXzcZjua9dwzDF90xKWcWD1SfkFpP3wpu3AXE2L+j38g==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "ae1a2ce5-d193-497d-a26b-aeba14e12ddc",
+                            SecurityStamp = "a5ab9dca-7e81-4cda-9787-358d278af6d9",
                             TwoFactorEnabled = false,
                             UserName = "owner@spotin.com",
                             WalletBalance = 500.00m
@@ -552,7 +555,7 @@ namespace WebApplication1.Migrations
                         {
                             Id = "4d5e6f7a-8b9c-0d1e-2f3a4b5c6d7e8f9a",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "77207855-ed05-4fba-9855-d16be51b445c",
+                            ConcurrencyStamp = "72b652b1-9f79-4bbf-9f67-b499d762460f",
                             Email = "client@spotin.com",
                             EmailConfirmed = true,
                             FirstName = "Normal",
@@ -560,9 +563,9 @@ namespace WebApplication1.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "CLIENT@SPOTIN.COM",
                             NormalizedUserName = "CLIENT@SPOTIN.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEO7A0kSlJt6YXOdXsdj9NHoyoKw3yoKD+6yUDIZO0BxuhYyXHbmET8DI4n3owiM4TQ==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEI6MErKIw8ixld26/U/NeXkSSFPqrGN6z7P99h98M7SkKVR6RzhbtlYE4SubIglD1A==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "3aee01e1-de5a-4253-ad16-1376721e9b60",
+                            SecurityStamp = "a69bee03-9b28-4f8b-a4b6-8a0a59cab887",
                             TwoFactorEnabled = false,
                             UserName = "client@spotin.com",
                             WalletBalance = 150.00m
@@ -587,9 +590,6 @@ namespace WebApplication1.Migrations
                     b.Property<bool>("HasAirConditioning")
                         .HasColumnType("bit");
 
-                    b.Property<bool>("HasDrinksAndCafeteria")
-                        .HasColumnType("bit");
-
                     b.Property<bool>("HasWiFi")
                         .HasColumnType("bit");
 
@@ -608,12 +608,6 @@ namespace WebApplication1.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<int>("TotalRooms")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TotalTables")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.HasIndex("OwnerId");
@@ -627,14 +621,11 @@ namespace WebApplication1.Migrations
                             Address = "12 Tahrir Street, Dokki, Giza",
                             Description = "Cozy workspace with premium high-speed internet and silent rooms.",
                             HasAirConditioning = true,
-                            HasDrinksAndCafeteria = false,
                             HasWiFi = true,
                             Latitude = 30.038399999999999,
                             Longitude = 31.212199999999999,
                             Name = "SpotIn Dokki Branch",
-                            OwnerId = "3c4d5e6f-7a8b-9c0d-1e2f-3a4b5c6d7e8f",
-                            TotalRooms = 0,
-                            TotalTables = 0
+                            OwnerId = "3c4d5e6f-7a8b-9c0d-1e2f-3a4b5c6d7e8f"
                         });
                 });
 

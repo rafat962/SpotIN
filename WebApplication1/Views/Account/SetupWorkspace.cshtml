@@ -19,6 +19,12 @@
     <form asp-controller="Account" asp-action="SaveWorkspace" method="post">
         @Html.AntiForgeryToken()
 
+        <!-- حقول مخفية مدمجة بالـ Model لتمرير بيانات الـ Owner بأمان وثبات -->
+        <input type="hidden" asp-for="PendingOwnerId" />
+        <input type="hidden" asp-for="FirstName" />
+        <input type="hidden" asp-for="LastName" />
+
+        <!-- ══ Section 1: Space Details & Location ══ -->
         <div style="font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--primary-blue); margin-bottom: 14px; padding-bottom: 4px; border-bottom: 1px solid var(--border-color);">
             1. Space Details & Location
         </div>
@@ -39,10 +45,12 @@
             <div class="auth-field" style="margin-bottom: 0;">
                 <label asp-for="Latitude">Latitude (خط العرض)</label>
                 <input type="number" step="any" asp-for="Latitude" placeholder="30.0444" required />
+                <span asp-validation-for="Latitude" style="color: #dc2626; font-size: 12px; margin-top: 4px; display: block;"></span>
             </div>
             <div class="auth-field" style="margin-bottom: 0;">
                 <label asp-for="Longitude">Longitude (خط الطول)</label>
                 <input type="number" step="any" asp-for="Longitude" placeholder="31.2357" required />
+                <span asp-validation-for="Longitude" style="color: #dc2626; font-size: 12px; margin-top: 4px; display: block;"></span>
             </div>
         </div>
 
@@ -55,10 +63,12 @@
             <div class="auth-field" style="margin-bottom: 0;">
                 <label asp-for="TotalTables">Standard Tables</label>
                 <input type="number" asp-for="TotalTables" min="0" placeholder="0" required />
+                <span asp-validation-for="TotalTables" style="color: #dc2626; font-size: 12px; margin-top: 4px; display: block;"></span>
             </div>
             <div class="auth-field" style="margin-bottom: 0;">
                 <label asp-for="TotalRooms">Meeting Rooms</label>
                 <input type="number" asp-for="TotalRooms" min="0" placeholder="0" required />
+                <span asp-validation-for="TotalRooms" style="color: #dc2626; font-size: 12px; margin-top: 4px; display: block;"></span>
             </div>
         </div>
 

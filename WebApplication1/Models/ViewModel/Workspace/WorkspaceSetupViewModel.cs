@@ -4,6 +4,10 @@ namespace WebApplication1.Models.ViewModels
 {
     public class WorkspaceSetupViewModel
     {
+        public string? PendingOwnerId { get; set; }
+        public string? FirstName { get; set; }
+        public string? LastName { get; set; }
+
         [Required(ErrorMessage = "Workspace Name is required.")]
         public string Name { get; set; }
 
@@ -28,6 +32,6 @@ namespace WebApplication1.Models.ViewModels
         public bool HasWiFi { get; set; }
         public bool HasDrinksAndCafeteria { get; set; }
 
-        public string Description { get; set; }
+        public string? Description { get; set; }
     }
 }

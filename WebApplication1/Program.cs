@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using WebApplication1.Data;
 using WebApplication1.Models.Domain.User;
+using WebApplication1.Repositories;
+using WebApplication1.Repositories.Auth;
 
 namespace WebApplication1
 {
@@ -18,6 +20,7 @@ namespace WebApplication1
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+            builder.Services.AddScoped<IAuthRepositorie,AuthRepository>(); 
 
             builder.Services.ConfigureApplicationCookie(options =>
             {
