@@ -1,0 +1,225 @@
+﻿@model List<WorkSpace>
+
+@{
+    Layout = "_ClientLayout";
+    ViewData["Title"] = "Book a Spot";
+    ViewData["PageTitle"] = "Book a Spot";
+    ViewData["Breadcrumb"] = "SpotIN · New Booking";
+
+    int? selectedResourceId = ViewBag.SelectedResourceId as int?;
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="cl-alert cl-alert--error">✖ @TempData["Error"]</div>
+}
+
+<!-- Page Header -->
+<div class="cl-page-header">
+    <div>
+        <h2 class="cl-page-title">Book a Spot</h2>
+        <p class="cl-page-sub">Choose a workspace and resource, then confirm your booking.</p>
+    </div>
+    <a href="/Client/Index" class="cl-btn cl-btn--ghost">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+            <polyline points="15 18 9 12 15 6" />
+        </svg>
+        Back to Explore
+    </a>
+</div>
+
+<!-- Step Indicator -->
+<div class="req-steps">
+    <div class="req-step req-step--active" id="step-ind-1">
+        <div class="req-step-num">1</div>
+        <div class="req-step-lbl">Choose Resource</div>
+    </div>
+    <div class="req-step-line"></div>
+    <div class="req-step" id="step-ind-2">
+        <div class="req-step-num">2</div>
+        <div class="req-step-lbl">Set Time</div>
+    </div>
+    <div class="req-step-line"></div>
+    <div class="req-step" id="step-ind-3">
+        <div class="req-step-num">3</div>
+        <div class="req-step-lbl">Confirm</div>
+    </div>
+</div>
+
+<form method="post" action="/Client/SubmitBooking" id="booking-form">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="resourceId" id="selected-resource-id" value="@(selectedResourceId ?? 0)" />
+
+    <div class="req-layout">
+
+        <!-- LEFT: Workspace + Resource Picker -->
+        <div class="req-left">
+
+            @foreach (var ws in Model)
+            {
+                var resources = ws.Resourses.Where(r => r.IsAvailable).ToList();
+                if (!resources.Any()) continue;
+
+                <div class="req-ws-section">
+                    <div class="req-ws-header">
+                        <div class="req-ws-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                                <polyline points="9 22 9 12 15 12 15 22" />
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="req-ws-name">@ws.Name</div>
+                            <div class="req-ws-addr">@ws.Address</div>
+                        </div>
+                        <div class="req-ws-tags">
+                            @if (ws.HasWiFi)
+                            {
+                                <span class="ws-tag">📶</span>
+                            }
+                            @if (ws.HasAirConditioning)
+                            {
+                                <span class="ws-tag">❄</span>
+                            }
+                            @if (ws.HasDrinksAndCafeteria)
+                            {
+                                <span class="ws-tag">☕</span>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="req-res-grid">
+                        @foreach (var r in resources)
+                        {
+                            var isSelected = (selectedResourceId.HasValue && selectedResourceId.Value == r.Id);
+                            <div class="req-res-card @(isSelected ? "req-res-card--selected" : "")"
+                                 onclick="selectResource(@r.Id, @r.HourlyRate, '@r.Name', '@r.Type', this)">
+                                <div class="req-res-top">
+                                    <span class="req-res-type-badge req-type-@(r.Type.Replace(" ", ""))">@r.Type</span>
+                                    <span class="req-res-rate">EGP @r.HourlyRate/hr</span>
+                                </div>
+                                <div class="req-res-name">@r.Name</div>
+                                <div class="req-res-avail">✓ Available Now</div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+
+            @if (!Model.Any(w => w.Resourses.Any(r => r.IsAvailable)))
+            {
+                <div class="cl-empty-state">
+                    <p>No resources are currently available. Please check back soon.</p>
+                </div>
+            }
+        </div>
+
+        <!-- RIGHT: Booking Summary + Time Picker -->
+        <div class="req-right">
+            <div class="req-summary-card">
+                <div class="req-summary-title">Booking Summary</div>
+
+                <!-- Placeholder when nothing selected -->
+                <div id="summary-empty" class="req-summary-empty @(selectedResourceId.HasValue ? "hidden" : "")">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="36" height="36" style="color:var(--text-muted)">
+                        <rect x="3" y="4" width="18" height="18" rx="2" />
+                        <line x1="16" y1="2" x2="16" y2="6" />
+                        <line x1="8" y1="2" x2="8" y2="6" />
+                        <line x1="3" y1="10" x2="21" y2="10" />
+                    </svg>
+                    <p>Select a resource to see details</p>
+                </div>
+
+                <!-- Summary when selected -->
+                <div id="summary-details" class="@(selectedResourceId.HasValue ? "" : "hidden")">
+                    <div class="req-sum-row">
+                        <span class="req-sum-lbl">Resource</span>
+                        <span class="req-sum-val" id="sum-name">—</span>
+                    </div>
+                    <div class="req-sum-row">
+                        <span class="req-sum-lbl">Type</span>
+                        <span class="req-sum-val" id="sum-type">—</span>
+                    </div>
+                    <div class="req-sum-row">
+                        <span class="req-sum-lbl">Rate</span>
+                        <span class="req-sum-val" id="sum-rate">—</span>
+                    </div>
+
+                    <div class="req-time-block">
+                        <label class="req-field-label">Start Time</label>
+                        <input type="datetime-local" name="startTime" id="start-time"
+                               class="req-time-input"
+                               min="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")"
+                               value="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")"
+                               required />
+                    </div>
+
+                    <div class="req-sum-divider"></div>
+
+                    <div class="req-sum-row req-sum-row--total">
+                        <span class="req-sum-lbl">Billing</span>
+                        <span class="req-sum-val">Per hour (billed on checkout)</span>
+                    </div>
+
+                    <button type="submit" class="cl-btn cl-btn--primary" style="width:100%;margin-top:16px;justify-content:center">
+                        Confirm Booking
+                    </button>
+                    <a href="/Client/Index" class="cl-btn cl-btn--ghost" style="width:100%;margin-top:8px;justify-content:center">Cancel</a>
+                </div>
+            </div>
+
+            <!-- Info Box -->
+            <div class="req-info-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+                <div>
+                    Booking is confirmed immediately and charged from your wallet when you check out.
+                    You can cancel anytime before the start time.
+                </div>
+            </div>
+        </div>
+
+    </div>
+</form>
+
+<script>
+    var selectedRate = 0;
+
+    function selectResource(id, rate, name, type, el) {
+        // Update hidden input
+        document.getElementById('selected-resource-id').value = id;
+        selectedRate = rate;
+
+        // Update cards highlight
+        document.querySelectorAll('.req-res-card').forEach(c => c.classList.remove('req-res-card--selected'));
+        el.classList.add('req-res-card--selected');
+
+        // Update summary
+        document.getElementById('summary-empty').classList.add('hidden');
+        document.getElementById('summary-details').classList.remove('hidden');
+        document.getElementById('sum-name').textContent = name;
+        document.getElementById('sum-type').textContent = type;
+        document.getElementById('sum-rate').textContent = 'EGP ' + rate + '/hr';
+
+        // Update step indicator
+        document.querySelectorAll('.req-step').forEach(s => s.classList.remove('req-step--active'));
+        document.getElementById('step-ind-2').classList.add('req-step--active');
+    }
+
+    document.getElementById('start-time')?.addEventListener('change', function() {
+        document.querySelectorAll('.req-step').forEach(s => s.classList.remove('req-step--active'));
+        document.getElementById('step-ind-3').classList.add('req-step--active');
+    });
+
+    // Validate before submit
+    document.getElementById('booking-form').addEventListener('submit', function(e) {
+        var rid = document.getElementById('selected-resource-id').value;
+        if (!rid || rid === '0') {
+            e.preventDefault();
+            alert('Please select a resource before confirming.');
+        }
+    });
+</script>

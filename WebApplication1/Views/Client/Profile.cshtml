@@ -1,0 +1,184 @@
+﻿@model WebApplication1.Models.Domain.User.ApplicationUser
+
+@{
+    Layout = "_ClientLayout";
+    ViewData["Title"] = "My Profile";
+    ViewData["PageTitle"] = "My Profile";
+    ViewData["Breadcrumb"] = "SpotIN · Profile";
+
+    var activeBookings = Model?.Bookings.Where(b => b.Status == "Active").ToList() ?? new();
+    var completedBookings = Model?.Bookings.Where(b => b.Status == "Completed").ToList() ?? new();
+    var cancelledBookings = Model?.Bookings.Where(b => b.Status == "Cancelled").ToList() ?? new();
+    var totalSpent = Model?.Bookings
+        .SelectMany(b => b.Invoices)
+        .Sum(i => i.GrandTotal) ?? 0;
+
+    var first = User.FindFirst("FirstName")?.Value ?? "";
+    var last = User.FindFirst("LastName")?.Value ?? "";
+    var initials = (first.Length > 0 ? first[0].ToString() : "")
+                 + (last.Length > 0 ? last[0].ToString() : "");
+}
+
+<!-- Profile Header -->
+<div class="prof-header-card">
+    <div class="prof-avatar-lg">@initials.ToUpper()</div>
+    <div class="prof-header-info">
+        <div class="prof-fullname">@Model?.FirstName @Model?.LastName</div>
+        <div class="prof-email">@Model?.Email</div>
+        <span class="prof-role-badge">Client</span>
+    </div>
+    <div class="prof-wallet-block">
+        <div class="prof-wallet-label">Wallet Balance</div>
+        <div class="prof-wallet-val">EGP @Model?.WalletBalance.ToString("N2")</div>
+        <button class="cl-btn cl-btn--ghost cl-btn--sm" style="margin-top:8px">+ Top Up</button>
+    </div>
+</div>
+
+<!-- Stats Row -->
+<div class="prof-stats-row">
+    <div class="prof-stat">
+        <div class="prof-stat-val">@(Model?.Bookings.Count ?? 0)</div>
+        <div class="prof-stat-lbl">Total Bookings</div>
+    </div>
+    <div class="prof-stat">
+        <div class="prof-stat-val" style="color:var(--accent-green)">@activeBookings.Count</div>
+        <div class="prof-stat-lbl">Active Now</div>
+    </div>
+    <div class="prof-stat">
+        <div class="prof-stat-val">@completedBookings.Count</div>
+        <div class="prof-stat-lbl">Completed</div>
+    </div>
+    <div class="prof-stat">
+        <div class="prof-stat-val" style="color:var(--primary)">EGP @totalSpent.ToString("N0")</div>
+        <div class="prof-stat-lbl">Total Spent</div>
+    </div>
+</div>
+
+<!-- Tabs -->
+<div class="prof-tabs">
+    <button class="prof-tab active" onclick="switchTab('active', this)">Active Bookings</button>
+    <button class="prof-tab" onclick="switchTab('history', this)">History</button>
+    <button class="prof-tab" onclick="switchTab('account', this)">Account Info</button>
+</div>
+
+<!-- Tab: Active Bookings -->
+<div id="tab-active" class="prof-tab-content">
+    @if (!activeBookings.Any())
+    {
+        <div class="cl-empty-state" style="padding:40px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:40px;height:40px">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+            </svg>
+            <p>No active bookings right now.</p>
+            <a href="/Client/Request" class="cl-btn cl-btn--primary cl-btn--sm" style="margin-top:12px">Book a Spot</a>
+        </div>
+    }
+    else
+    {
+        <div class="booking-list">
+            @foreach (var b in activeBookings)
+            {
+                <div class="booking-card booking-card--active">
+                    <div class="booking-card-left">
+                        <div class="booking-dot booking-dot--active"></div>
+                        <div>
+                            <div class="booking-res-name">@b.Resourse?.Name</div>
+                            <div class="booking-ws-name">@b.Resourse?.WorkSpace?.Name</div>
+                            <div class="booking-time">
+                                Started: @b.StartTime.ToString("MMM dd, yyyy · HH:mm")
+                            </div>
+                        </div>
+                    </div>
+                    <div class="booking-card-right">
+                        <span class="booking-pill pill--active">Active</span>
+                        <div class="booking-rate">EGP @b.Resourse?.HourlyRate/hr</div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<!-- Tab: History -->
+<div id="tab-history" class="prof-tab-content" style="display:none">
+    @{
+        var allPast = completedBookings.Concat(cancelledBookings)
+                        .OrderByDescending(b => b.StartTime).ToList();
+    }
+    @if (!allPast.Any())
+    {
+        <div class="cl-empty-state" style="padding:40px">
+            <p>No booking history yet.</p>
+        </div>
+    }
+    else
+    {
+        <div class="booking-list">
+            @foreach (var b in allPast)
+            {
+                var pillClass = b.Status == "Completed" ? "pill--completed" : "pill--cancelled";
+                <div class="booking-card">
+                    <div class="booking-card-left">
+                        <div class="booking-dot @(b.Status == "Completed" ? "booking-dot--done" : "booking-dot--cancel")"></div>
+                        <div>
+                            <div class="booking-res-name">@b.Resourse?.Name</div>
+                            <div class="booking-ws-name">@b.Resourse?.WorkSpace?.Name</div>
+                            <div class="booking-time">
+                                @b.StartTime.ToString("MMM dd, yyyy · HH:mm")
+                                @if (b.EndTime.HasValue)
+                                {
+                                    <span> → @b.EndTime.Value.ToString("HH:mm")</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <div class="booking-card-right">
+                        <span class="booking-pill @pillClass">@b.Status</span>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<!-- Tab: Account Info -->
+<div id="tab-account" class="prof-tab-content" style="display:none">
+    <div class="acc-info-grid">
+        <div class="acc-field">
+            <label class="acc-label">First Name</label>
+            <div class="acc-val">@Model?.FirstName</div>
+        </div>
+        <div class="acc-field">
+            <label class="acc-label">Last Name</label>
+            <div class="acc-val">@Model?.LastName</div>
+        </div>
+        <div class="acc-field">
+            <label class="acc-label">Email Address</label>
+            <div class="acc-val">@Model?.Email</div>
+        </div>
+        <div class="acc-field">
+            <label class="acc-label">Phone</label>
+            <div class="acc-val">@(Model?.PhoneNumber ?? "—")</div>
+        </div>
+        <div class="acc-field">
+            <label class="acc-label">Wallet Balance</label>
+            <div class="acc-val" style="color:var(--primary);font-weight:700">EGP @Model?.WalletBalance.ToString("N2")</div>
+        </div>
+        <div class="acc-field">
+            <label class="acc-label">Account Type</label>
+            <div class="acc-val">Client</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function switchTab(name, btn) {
+        document.querySelectorAll('.prof-tab-content').forEach(t => t.style.display = 'none');
+        document.querySelectorAll('.prof-tab').forEach(t => t.classList.remove('active'));
+        document.getElementById('tab-' + name).style.display = '';
+        btn.classList.add('active');
+    }
+</script>

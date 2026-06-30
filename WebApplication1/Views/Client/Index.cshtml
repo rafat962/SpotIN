@@ -1,13 +1,489 @@
-﻿@{
+﻿@model List<WorkSpace>
+
+@{
     Layout = "_ClientLayout";
     ViewData["Title"] = "Explore Workspaces";
+    ViewData["PageTitle"] = "Explore Workspaces";
+    ViewData["Breadcrumb"] = "SpotIN · Explore";
 }
 
-<div class="dashboard-header">
-    <h2>Find your perfect spot to work</h2>
-    <p style="color: #6b7280;">Book standard tables, meeting rooms, or dedicated desks instantly.</p>
+@section Scripts {
+    <script>
+
+        var map = L.map('ws-map').setView([30.0444, 31.2357], 11);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+
+        var workspaces = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+                    Model.Select(w => new
+                    {
+                            id = w.Id,
+                            name = w.Name,
+                            lat = w.Latitude,
+                            lng = w.Longitude,
+                            addr = w.Address,
+                            tables = w.TotalTables,
+                            rooms = w.TotalRooms,
+                            avail = w.Resourses.Count(r => r.IsAvailable),
+                            firstAvailId = w.Resourses.FirstOrDefault(r => r.IsAvailable) != null
+                                                          ? w.Resourses.First(r => r.IsAvailable).Id : 0
+                    })
+            ));
+
+
+        var userLat = null, userLng = null;
+        var userMarker = null;
+        var routeLayer = null;
+        var wsMarkers  = {};
+
+
+        var defaultIcon = L.divIcon({
+            className: '',
+            html: '<div class="ws-map-pin"></div>',
+            iconSize: [32, 32], iconAnchor: [16, 32], popupAnchor: [0, -34]
+        });
+
+        var nearbyIcon = L.divIcon({
+            className: '',
+            html: '<div class="ws-map-pin ws-map-pin--nearby"></div>',
+            iconSize: [36, 36], iconAnchor: [18, 36], popupAnchor: [0, -38]
+        });
+
+        var userIcon = L.divIcon({
+            className: '',
+            html: '<div class="user-map-pin"><div class="user-map-pulse"></div></div>',
+            iconSize: [20, 20], iconAnchor: [10, 10]
+        });
+
+
+
+
+        workspaces.forEach(function(ws) {
+            var marker = L.marker([ws.lat, ws.lng], { icon: defaultIcon })
+                .addTo(map)
+                .bindPopup(buildPopup(ws));
+            wsMarkers[ws.id] = marker;
+
+            marker.on('click', function() { highlightCard(ws.id); });
+        });
+
+        function buildPopup(ws) {
+            var distTxt = ws.distKm != null
+                ? '<div class="map-popup-dist">📍 ' + ws.distKm.toFixed(1) + ' km away</div>'
+                : '';
+            var routeBtn = (userLat != null)
+                ? '<button onclick="getRoute(' + ws.lat + ',' + ws.lng + ',' + ws.id + ')" class="map-popup-btn map-popup-btn--route">🗺 Get Directions</button>'
+                : '';
+            return '<div class="map-popup">' +
+                '<div class="map-popup-name">' + ws.name + '</div>' +
+                '<div class="map-popup-addr">' + ws.addr + '</div>' +
+                distTxt +
+                '<div class="map-popup-caps">🪑 ' + ws.tables + ' Desks &nbsp; 🚪 ' + ws.rooms + ' Rooms</div>' +
+                '<div class="map-popup-actions">' +
+                (ws.avail > 0
+                    ? '<a href="/Client/Request?resourceId=' + ws.firstAvailId + '" class="map-popup-btn map-popup-btn--book">Book Now</a>'
+                    : '<span class="map-popup-btn map-popup-btn--full">Full</span>') +
+                routeBtn +
+                '</div></div>';
+        }
+
+    
+        function locateUser() {
+            var btn = document.getElementById('btn-nearby');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loc-spinner"></span> Locating…';
+
+            if (!navigator.geolocation) {
+                showLocError('Geolocation is not supported by your browser.');
+                resetLocBtn(btn);
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                function(pos) {
+                    userLat = pos.coords.latitude;
+                    userLng = pos.coords.longitude;
+
+                    if (userMarker) map.removeLayer(userMarker);
+                    userMarker = L.marker([userLat, userLng], { icon: userIcon })
+                        .addTo(map)
+                        .bindPopup('<b>You are here</b>')
+                        .openPopup();
+
+                    workspaces.forEach(function(ws) {
+                        ws.distKm = haversine(userLat, userLng, ws.lat, ws.lng);
+                    });
+
+                    workspaces.sort(function(a, b) { return a.distKm - b.distKm; });
+
+                    renderSortedCards();
+
+                    workspaces.forEach(function(ws, i) {
+                        if (wsMarkers[ws.id]) {
+                            wsMarkers[ws.id].setIcon(i < 3 ? nearbyIcon : defaultIcon);
+                            wsMarkers[ws.id].setPopupContent(buildPopup(ws));
+                        }
+                    });
+
+                    var bounds = [[userLat, userLng]];
+                    workspaces.slice(0, 3).forEach(function(ws) {
+                        bounds.push([ws.lat, ws.lng]);
+                    });
+                    map.fitBounds(bounds, { padding: [40, 40] });
+
+                    btn.innerHTML = '📍 Nearest First';
+                    btn.disabled  = false;
+                    btn.classList.add('btn-nearby--active');
+
+                    showNearbyBanner(workspaces[0]);
+                },
+                function(err) {
+                    showLocError('Could not get your location. Please allow location access.');
+                    resetLocBtn(btn);
+                },
+                { timeout: 10000, maximumAge: 60000 }
+            );
+        }
+
+        function getRoute(destLat, destLng, wsId) {
+            if (!userLat) {
+                showLocError('Please click "Nearest to Me" first to detect your location.');
+                return;
+            }
+
+            if (routeLayer) map.removeLayer(routeLayer);
+
+            var url = 'https://router.project-osrm.org/route/v1/driving/' +
+                userLng + ',' + userLat + ';' +
+                destLng + ',' + destLat +
+                '?overview=full&geometries=geojson';
+
+            document.getElementById('route-info').style.display = 'flex';
+            document.getElementById('route-info').innerHTML =
+                '<span class="route-loading">⏳ Getting directions…</span>';
+
+            fetch(url)
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (!data.routes || !data.routes.length) {
+                        document.getElementById('route-info').innerHTML =
+                            '<span style="color:#ef4444">Could not find a route.</span>';
+                        return;
+                    }
+
+                    var route    = data.routes[0];
+                    var distKm   = (route.distance / 1000).toFixed(1);
+                    var durMin   = Math.round(route.duration / 60);
+                    var geojson  = route.geometry;
+
+                    routeLayer = L.geoJSON(geojson, {
+                        style: {
+                            color: '#2d4fa1',
+                            weight: 4,
+                            opacity: 0.85,
+                            dashArray: null
+                        }
+                    }).addTo(map);
+
+                    map.fitBounds(routeLayer.getBounds(), { padding: [40, 40] });
+
+                    var ws = workspaces.find(function(w) { return w.id === wsId; });
+                    document.getElementById('route-info').innerHTML =
+                        '<div class="route-detail">' +
+                        '<span class="route-dest">📍 ' + (ws ? ws.name : 'Destination') + '</span>' +
+                        '<span class="route-dist">🚗 ' + distKm + ' km</span>' +
+                        '<span class="route-dur">⏱ ~' + durMin + ' min</span>' +
+                        '<button onclick="clearRoute()" class="route-clear-btn">✕ Clear</button>' +
+                        '</div>';
+
+                    if (ws) {
+                        var distEl = document.getElementById('dist-' + wsId);
+                        if (distEl) distEl.innerHTML =
+                            '🚗 ' + distKm + ' km &nbsp;·&nbsp; ⏱ ~' + durMin + ' min';
+                    }
+                })
+                .catch(function() {
+                    document.getElementById('route-info').innerHTML =
+                        '<span style="color:#ef4444">Network error. Check your connection.</span>';
+                });
+        }
+
+        function clearRoute() {
+            if (routeLayer) { map.removeLayer(routeLayer); routeLayer = null; }
+            document.getElementById('route-info').style.display = 'none';
+        }
+
+      
+        function haversine(lat1, lng1, lat2, lng2) {
+            var R = 6371;
+            var dLat = (lat2 - lat1) * Math.PI / 180;
+            var dLng = (lng2 - lng1) * Math.PI / 180;
+            var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                    Math.sin(dLng/2) * Math.sin(dLng/2);
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        }
+
+        function highlightCard(id) {
+            document.querySelectorAll('.ws-card').forEach(c => c.classList.remove('highlighted'));
+            var card = document.getElementById('card-' + id);
+            if (card) {
+                card.classList.add('highlighted');
+                card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+
+        function renderSortedCards() {
+            var list = document.getElementById('ws-list');
+            workspaces.forEach(function(ws) {
+                var card = document.getElementById('card-' + ws.id);
+                if (!card) return;
+
+                var distBadge = card.querySelector('.ws-dist-badge');
+                if (distBadge) distBadge.textContent = ws.distKm.toFixed(1) + ' km';
+                else {
+                    var top = card.querySelector('.ws-card-top');
+                    if (top) {
+                        var badge = document.createElement('span');
+                        badge.className = 'ws-dist-badge';
+                        badge.textContent = ws.distKm.toFixed(1) + ' km';
+                        top.appendChild(badge);
+                    }
+                }
+                list.appendChild(card); 
+            });
+
+
+            var firstCard = document.getElementById('card-' + workspaces[0].id);
+            if (firstCard && !firstCard.querySelector('.ws-nearest-badge')) {
+                var nb = document.createElement('span');
+                nb.className = 'ws-nearest-badge';
+                nb.textContent = '⭐ Nearest';
+                firstCard.querySelector('.ws-card-top').prepend(nb);
+            }
+        }
+
+        function showNearbyBanner(nearest) {
+            var banner = document.getElementById('nearby-banner');
+            if (!banner) return;
+            banner.innerHTML =
+                '📍 Nearest workspace: <strong>' + nearest.name + '</strong>' +
+                ' — ' + nearest.distKm.toFixed(1) + ' km away' +
+                ' &nbsp;<button onclick="wsMarkers[' + nearest.id + '].openPopup(); map.setView([' + nearest.lat + ',' + nearest.lng + '],15);" class="banner-go-btn">Show on Map</button>';
+            banner.style.display = 'flex';
+        }
+
+        function showLocError(msg) {
+            var el = document.getElementById('loc-error');
+            if (!el) return;
+            el.textContent = msg;
+            el.style.display = 'block';
+            setTimeout(function() { el.style.display = 'none'; }, 5000);
+        }
+
+        function resetLocBtn(btn) {
+            btn.disabled = false;
+            btn.innerHTML = '📍 Nearest to Me';
+        }
+
+        document.getElementById('filter-type')?.addEventListener('change', function() {
+            var val = this.value;
+            document.querySelectorAll('.ws-card').forEach(function(card) {
+                card.style.display = (!val || card.dataset.type === val) ? '' : 'none';
+            });
+        });
+
+        document.getElementById('search-input')?.addEventListener('input', function() {
+            var q = this.value.toLowerCase();
+            document.querySelectorAll('.ws-card').forEach(function(card) {
+                card.style.display = card.dataset.name.includes(q) ? '' : 'none';
+            });
+        });
+    </script>
+}
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+@if (TempData["Success"] != null)
+{
+    <div class="cl-alert cl-alert--success">✔ @TempData["Success"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="cl-alert cl-alert--error">✖ @TempData["Error"]</div>
+}
+
+<div id="loc-error" class="loc-error-toast" style="display:none"></div>
+
+<div class="cl-page-header">
+    <div>
+        <h2 class="cl-page-title">Find Your Perfect Spot</h2>
+        <p class="cl-page-sub">Browse coworking spaces and book a desk or meeting room instantly.</p>
+    </div>
+    <a href="/Client/Request" class="cl-btn cl-btn--primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+        </svg>
+        Book a Spot
+    </a>
 </div>
 
-<div style="border: 2px dashed #d1d5db; padding: 40px; text-align: center; border-radius: 12px; margin-top: 24px; color: #9ca3af;">
-    Workspace grid/list view and maps will be integrated here.
+
+<div class="cl-filter-bar">
+    <div class="cl-filter-search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <input id="search-input" type="text" placeholder="Search workspaces…" />
+    </div>
+    <select id="filter-type" class="cl-filter-select">
+        <option value="">All Types</option>
+        <option value="Table">Open Desks</option>
+        <option value="MeetingRoom">Meeting Rooms</option>
+        <option value="PrivateOffice">Private Offices</option>
+    </select>
+    <!-- زر الموقع -->
+    <button id="btn-nearby" class="cl-btn cl-btn--locate" onclick="locateUser()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15">
+            <circle cx="12" cy="12" r="3" />
+            <path d="M12 2v3M12 19v3M2 12h3M19 12h3" />
+            <path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z" />
+        </svg>
+        Nearest to Me
+    </button>
 </div>
+
+
+<div id="nearby-banner" class="nearby-banner" style="display:none"></div>
+
+
+<div id="route-info" class="route-info-bar" style="display:none"></div>
+
+
+<div class="cl-explore-grid">
+
+
+    <div class="cl-ws-list" id="ws-list">
+        @if (!Model.Any())
+        {
+            <div class="cl-empty-state">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                    <polyline points="9 22 9 12 15 12 15 22" />
+                </svg>
+                <p>No workspaces available right now.</p>
+            </div>
+        }
+
+        @foreach (var ws in Model)
+        {
+            var availableCount = ws.Resourses.Count(r => r.IsAvailable);
+            var totalCount = ws.Resourses.Count;
+            var pct = totalCount > 0 ? (int)((double)(totalCount - availableCount) / totalCount * 100) : 0;
+            var firstType = ws.Resourses.FirstOrDefault()?.Type ?? "Table";
+
+            <div class="ws-card" id="card-@ws.Id" data-name="@ws.Name.ToLower()" data-type="@firstType"
+                 data-lat="@ws.Latitude" data-lng="@ws.Longitude">
+
+                <div class="ws-card-top">
+                    <div class="ws-card-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                            <polyline points="9 22 9 12 15 12 15 22" />
+                        </svg>
+                    </div>
+                    <div class="ws-card-info">
+                        <div class="ws-card-name">@ws.Name</div>
+                        <div class="ws-card-addr">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
+                                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
+                                <circle cx="12" cy="9" r="2.5" />
+                            </svg>
+                            @ws.Address
+                        </div>
+
+                        <div id="dist-@ws.Id" class="ws-route-dist"></div>
+                    </div>
+                    <span class="ws-avail-badge @(availableCount > 0 ? "badge--open" : "badge--full")">
+                        @(availableCount > 0 ? $"{availableCount} Available" : "Full")
+                    </span>
+                </div>
+
+                <div class="ws-amenities">
+                    @if (ws.HasWiFi)
+                    {
+                        <span class="ws-tag">📶 WiFi</span>
+                    }
+                    @if (ws.HasAirConditioning)
+                    {
+                        <span class="ws-tag">❄ AC</span>
+                    }
+                    @if (ws.HasDrinksAndCafeteria)
+                    {
+                        <span class="ws-tag">☕ Café</span>
+                    }
+                </div>
+
+                <div class="ws-cap-row">
+                    <div class="ws-cap-item">
+                        <span class="ws-cap-val">@ws.TotalTables</span>
+                        <span class="ws-cap-lbl">Desks</span>
+                    </div>
+                    <div class="ws-cap-item">
+                        <span class="ws-cap-val">@ws.TotalRooms</span>
+                        <span class="ws-cap-lbl">Rooms</span>
+                    </div>
+                    <div class="ws-cap-item">
+                        <span class="ws-cap-val">@pct%</span>
+                        <span class="ws-cap-lbl">Occupied</span>
+                    </div>
+                </div>
+
+                <div class="ws-occ-bar">
+                    <div class="ws-occ-fill" style="width:@pct%"></div>
+                </div>
+
+                @if (ws.Resourses.Any())
+                {
+                    <div class="ws-resources">
+                        @foreach (var r in ws.Resourses.Take(3))
+                        {
+                            <div class="ws-resource-row">
+                                <span class="ws-res-name">@r.Name</span>
+                                <span class="ws-res-type">@r.Type</span>
+                                <span class="ws-res-rate">EGP @r.HourlyRate/hr</span>
+                                <span class="ws-res-status @(r.IsAvailable ? "status--free" : "status--busy")">
+                                    @(r.IsAvailable ? "Free" : "Busy")
+                                </span>
+                            </div>
+                        }
+                    </div>
+                }
+
+                <div class="ws-card-footer">
+                    <a href="/Client/Request?resourceId=@(ws.Resourses.FirstOrDefault(r => r.IsAvailable)?.Id ?? 0)"
+                       class="cl-btn cl-btn--primary cl-btn--sm @(availableCount == 0 ? "cl-btn--disabled" : "")">
+                        Book Now
+                    </a>
+                    <button class="cl-btn cl-btn--ghost cl-btn--sm"
+                            onclick="wsMarkers[@ws.Id]?.openPopup(); map.setView([@ws.Latitude, @ws.Longitude], 15);">
+                        📍 View on Map
+                    </button>
+                    <button class="cl-btn cl-btn--ghost cl-btn--sm"
+                            onclick="getRoute(@ws.Latitude, @ws.Longitude, @ws.Id)">
+                        🗺 Directions
+                    </button>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="cl-map-panel">
+        <div id="ws-map"></div>
+    </div>

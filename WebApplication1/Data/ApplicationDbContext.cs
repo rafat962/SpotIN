@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using WebApplication1.Models.Domain.User;
-using preSpotIn.Models; // للتأكد من قراءة كلاس الـ Wallet
+using preSpotIn.Models; 
 
 namespace WebApplication1.Data
 {
@@ -12,7 +12,6 @@ namespace WebApplication1.Data
         {
         }
 
-        // إشهار الـ DbSets لجميع الجداول لتقرأها الـ Migrations
         public DbSet<WorkSpace> WorkSpaces { get; set; }
         public DbSet<Resourse> Resourses { get; set; }
         public DbSet<Booking> Bookings { get; set; }
