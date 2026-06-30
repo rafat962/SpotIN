@@ -46,11 +46,12 @@ namespace WebApplication1.Repositories
             return await _signInManager.PasswordSignInAsync(userName, password, isPersistent, lockoutOnFailure: false);
         }
 
-        public async Task SignInWithClaimsAsync(ApplicationUser user, bool isPersistent, string firstName, string lastName)
+        public async Task SignInWithClaimsAsync(ApplicationUser user, bool isPersistent, string firstName, string lastName, string workspaceId)
         {
             var customClaims = new[] {
                 new Claim("FirstName", firstName ?? ""),
-                new Claim("LastName", lastName ?? "")
+                new Claim("LastName", lastName ?? ""),
+                new Claim("WorkspaceId", workspaceId ?? "")
             };
             await _signInManager.SignInWithClaimsAsync(user, isPersistent, customClaims);
         }
@@ -80,7 +81,7 @@ namespace WebApplication1.Repositories
             await _signInManager.SignOutAsync();
         }
 
-        public async Task<bool> CreateWorkspaceAsync(WorkspaceSetupViewModel model, string ownerId)
+        public async Task<int?> CreateWorkspaceAsync(WorkspaceSetupViewModel model, string ownerId)
         {
             var workspace = new WorkSpace
             {
@@ -94,12 +95,29 @@ namespace WebApplication1.Repositories
                 HasWiFi = model.HasWiFi,
                 HasDrinksAndCafeteria = model.HasDrinksAndCafeteria,
                 Description = model.Description,
-                OwnerId = ownerId  
+                OwnerId = ownerId
             };
+
+            for (int i = 1; i <= model.TotalTables; i++) 
+            {
+                workspace.Resourses.Add(new Resourse { Name = $"T{i}", Type = "Table", IsAvailable = true,HourlyRate = model.TablePricePerHour });
+            }
+
+            for (int i = 1; i <= model.TotalRooms; i++)
+            {
+                workspace.Resourses.Add(new Resourse { Name = $"R{i}", Type = "Room", IsAvailable = true,HourlyRate = model.RoomPricePerHour });
+            }
 
             await dbContext.WorkSpaces.AddAsync(workspace);
             var rowsAffected = await dbContext.SaveChangesAsync();
-            return rowsAffected > 0;
+
+            return rowsAffected > 0 ? workspace.Id : null;
+        }
+
+        public async Task<string> GetWorkspaceIdByOwnerIdAsync(string ownerId)
+        {
+            var workspace = await dbContext.WorkSpaces.FirstOrDefaultAsync(w => w.OwnerId == ownerId);
+            return workspace?.Id.ToString() ?? "";
         }
     }
 }

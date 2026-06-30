@@ -45,9 +45,16 @@ namespace WebApplication1.Controllers.Auth
 
             if (result.Succeeded)
             {
-                await _authRepo.SignInWithClaimsAsync(user, model.RememberMe, user.FirstName, user.LastName);
-
                 var roles = await _authRepo.GetUserRolesAsync(user);
+                string workspaceId = "";
+
+                if (roles.Contains("Owner"))
+                {
+                    workspaceId = await _authRepo.GetWorkspaceIdByOwnerIdAsync(user.Id);
+                }
+
+                await _authRepo.SignInWithClaimsAsync(user, model.RememberMe, user.FirstName, user.LastName, workspaceId);
+
                 if (roles.Contains("Owner"))
                 {
                     return RedirectToAction("Index", "Owner");
@@ -63,7 +70,6 @@ namespace WebApplication1.Controllers.Auth
             ViewBag.ErrorMessage = "Invalid email or password.";
             return View("Login", model);
         }
-
         [HttpGet]
         public IActionResult SignUp()
         {
@@ -114,7 +120,7 @@ namespace WebApplication1.Controllers.Auth
 
                 if (assignedRole == "Client")
                 {
-                    await _authRepo.SignInWithClaimsAsync(user, isPersistent: true, user.FirstName, user.LastName);
+                    await _authRepo.SignInWithClaimsAsync(user, isPersistent: true, user.FirstName, user.LastName,"");
                     return RedirectToAction("Index", "Client");
                 }
 
@@ -156,7 +162,6 @@ namespace WebApplication1.Controllers.Auth
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SaveWorkspace(WorkspaceSetupViewModel model)
         {
-            // 1. استرجاع البيانات الحالية من الـ TempData
             var userId = TempData["PendingOwnerId"]?.ToString();
             var firstName = TempData["FirstName"]?.ToString() ?? "";
             var lastName = TempData["LastName"]?.ToString() ?? "";
@@ -180,9 +185,11 @@ namespace WebApplication1.Controllers.Auth
                 return RedirectToAction("SignUp");
             }
 
-            var isSaved = await _authRepo.CreateWorkspaceAsync(model, userId);
+            // Call the repository and get the new WorkspaceId
+            var workspaceId = await _authRepo.CreateWorkspaceAsync(model, userId);
 
-            if (!isSaved)
+            // If result is null, something went wrong with the database operation
+            if (workspaceId == null)
             {
                 ModelState.AddModelError(string.Empty, "Something went wrong while creating the workspace. Please try again.");
                 TempData.Keep("PendingOwnerId");
@@ -191,7 +198,8 @@ namespace WebApplication1.Controllers.Auth
                 return View("SetupWorkspace", model);
             }
 
-            await _authRepo.SignInWithClaimsAsync(user, isPersistent: true, firstName, lastName);
+            // Sign in the user, passing the new workspaceId to the claims
+            await _authRepo.SignInWithClaimsAsync(user, isPersistent: true, firstName, lastName, workspaceId.Value.ToString());
 
             return RedirectToAction("Index", "Owner");
         }

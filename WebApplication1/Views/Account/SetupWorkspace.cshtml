@@ -54,21 +54,34 @@
             </div>
         </div>
 
-        <!-- ══ Section 2: Capacity ══ -->
+       <!-- ══ Section 2: Capacity & Pricing ══ -->
         <div style="font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--primary-blue); margin: 24px 0 14px 0; padding-bottom: 4px; border-bottom: 1px solid var(--border-color);">
-            2. Capacity
+            2. Capacity & Pricing
         </div>
-        
-        <div class="auth-field-row" style="margin-bottom: 16px;">
-            <div class="auth-field" style="margin-bottom: 0;">
+
+        <div class="auth-field-row" style="margin-bottom: 16px; display: flex; gap: 16px;">
+            <div class="auth-field" style="margin-bottom: 0; flex: 1;">
                 <label asp-for="TotalTables">Standard Tables</label>
                 <input type="number" asp-for="TotalTables" min="0" placeholder="0" required />
                 <span asp-validation-for="TotalTables" style="color: #dc2626; font-size: 12px; margin-top: 4px; display: block;"></span>
             </div>
-            <div class="auth-field" style="margin-bottom: 0;">
+            <div class="auth-field" style="margin-bottom: 0; flex: 1;">
+                <label asp-for="TablePricePerHour">Table Price / Hour (EGP)</label>
+                <input type="number" step="0.01" asp-for="TablePricePerHour" min="0" placeholder="0.00" required />
+                <span asp-validation-for="TablePricePerHour" style="color: #dc2626; font-size: 12px; margin-top: 4px; display: block;"></span>
+            </div>
+        </div>
+
+        <div class="auth-field-row" style="margin-bottom: 16px; display: flex; gap: 16px;">
+            <div class="auth-field" style="margin-bottom: 0; flex: 1;">
                 <label asp-for="TotalRooms">Meeting Rooms</label>
                 <input type="number" asp-for="TotalRooms" min="0" placeholder="0" required />
                 <span asp-validation-for="TotalRooms" style="color: #dc2626; font-size: 12px; margin-top: 4px; display: block;"></span>
+            </div>
+            <div class="auth-field" style="margin-bottom: 0; flex: 1;">
+                <label asp-for="RoomPricePerHour">Room Price / Hour (EGP)</label>
+                <input type="number" step="0.01" asp-for="RoomPricePerHour" min="0" placeholder="0.00" required />
+                <span asp-validation-for="RoomPricePerHour" style="color: #dc2626; font-size: 12px; margin-top: 4px; display: block;"></span>
             </div>
         </div>
 

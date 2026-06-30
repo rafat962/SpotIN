@@ -4,14 +4,13 @@ using Microsoft.AspNetCore.Mvc;
 namespace WebApplication1.Controllers.Owner
 {
     [Authorize(Roles = "Owner")]
-    public class OwnerController : Controller
+    public class InvoicesController : Controller
     {
-        public IActionResult Index()
+        public IActionResult InvoicesList()
         {
             var workspaceId = User.FindFirst("WorkspaceId")?.Value;
-            ViewData["PageTitle"] = "Owner Dashboard";
-            ViewData["Breadcrumb"] = "SpotIN · Owner Portal";
-            return View();
+
+            return View("InvoicesList");
         }
     }
 }

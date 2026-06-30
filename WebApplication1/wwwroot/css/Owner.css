@@ -23,7 +23,11 @@
     --ow-shadow-md: 0 4px 12px rgba(0,0,0,.08), 0 2px 4px rgba(0,0,0,.04);
     --ow-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
-
+.ow-nav-item:hover,
+.ow-nav-item.active {
+    background: var(--ow-bg-page);
+    color: var(--ow-text-primary);
+}
 *, *::before, *::after {
     box-sizing: border-box;
     margin: 0;

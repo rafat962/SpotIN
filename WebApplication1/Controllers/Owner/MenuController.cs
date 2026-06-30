@@ -4,14 +4,18 @@ using Microsoft.AspNetCore.Mvc;
 namespace WebApplication1.Controllers.Owner
 {
     [Authorize(Roles = "Owner")]
-    public class OwnerController : Controller
+
+    public class MenuController : Controller
     {
-        public IActionResult Index()
+        public IActionResult MenuList()
         {
             var workspaceId = User.FindFirst("WorkspaceId")?.Value;
-            ViewData["PageTitle"] = "Owner Dashboard";
-            ViewData["Breadcrumb"] = "SpotIN · Owner Portal";
-            return View();
+
+            return View("MenuList");
+        }
+        public IActionResult CreateMenu()
+        {
+            return View("CreateMenu");
         }
     }
 }

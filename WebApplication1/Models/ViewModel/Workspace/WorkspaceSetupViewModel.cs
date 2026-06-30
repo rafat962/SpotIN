@@ -28,6 +28,10 @@ namespace WebApplication1.Models.ViewModels
         [Range(0, 100, ErrorMessage = "Please enter a valid number.")]
         public int TotalRooms { get; set; }
 
+        [Required(ErrorMessage = "TablePricePerHour of tables rooms is required.")]
+        public decimal TablePricePerHour { get; set; }
+        [Required(ErrorMessage = "TablePricePerHour of meeting rooms is required.")]
+        public decimal RoomPricePerHour { get; set; }
         public bool HasAirConditioning { get; set; }
         public bool HasWiFi { get; set; }
         public bool HasDrinksAndCafeteria { get; set; }

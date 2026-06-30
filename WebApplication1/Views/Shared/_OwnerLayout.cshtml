@@ -1,4 +1,7 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.EntityFrameworkCore
+@using WebApplication1.Data
+@inject ApplicationDbContext dbContext
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -9,10 +12,32 @@
 </head>
 <body>
 
+    @{
+        var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+        var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+
+        var first = User.FindFirst("FirstName")?.Value ?? "";
+        var last = User.FindFirst("LastName")?.Value ?? "";
+        var initials = (first.Length > 0 ? first[0].ToString() : "")
+                     + (last.Length > 0 ? last[0].ToString() : "");
+
+        var workspaceIdClaim = User.FindFirst("WorkspaceId")?.Value;
+        string workspaceName = "My Workspace";
+
+        if (!string.IsNullOrEmpty(workspaceIdClaim) && int.TryParse(workspaceIdClaim, out int wsId))
+        {
+            var workspace = dbContext.WorkSpaces.FirstOrDefault(w => w.Id == wsId);
+            if (workspace != null)
+            {
+                workspaceName = workspace.Name;
+            }
+        }
+    }
+
     <!-- ══════ SIDEBAR ══════ -->
     <aside class="ow-sidebar">
 
-        <a class="ow-brand"  asp-controller="Account" asp-action="Login" >
+        <a class="ow-brand" asp-controller="Account" asp-action="Login" >
             <div class="ow-brand-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
@@ -21,14 +46,15 @@
             </div>
             <div class="ow-brand-text">
                 <span class="ow-brand-name">spot<span>IN</span></span>
-                <span class="ow-brand-tag">Owner Portal</span>
+                <span class="ow-brand-tag">@workspaceName</span>
             </div>
         </a>
 
         <nav class="ow-nav">
+            <!-- Section 1: Overview -->
             <div class="ow-nav-section">
                 <div class="ow-nav-label">Overview</div>
-                <a asp-controller="Account" asp-action="Login"  class="ow-nav-item">
+                <a asp-controller="Owner" asp-action="Index" class="ow-nav-item @(currentController == "Owner" && currentAction == "Index" ? "active" : "")">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
                         <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
@@ -37,16 +63,17 @@
                 </a>
             </div>
 
+            <!-- Section 2: Workspace Management -->
             <div class="ow-nav-section">
                 <div class="ow-nav-label">Management</div>
-                <a asp-controller="Account" asp-action="Login"  class="ow-nav-item">
+                <a asp-controller="WorkSpace" asp-action="MangeWorkSpace" class="ow-nav-item @(currentController == "WorkSpace" && currentAction == "MangeWorkSpace" ? "active" : "")">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <rect x="2" y="7" width="20" height="14" rx="2"/>
                         <path d="M16 7V5a2 2 0 0 0-4 0v2M8 7V5a2 2 0 0 1 4 0"/>
                     </svg>
                     Manage Workspaces
                 </a>
-                <a  asp-controller="Account" asp-action="Login"  class="ow-nav-item">
+                <a asp-controller="Invoices" asp-action="InvoicesList" class="ow-nav-item @(currentController == "Invoices" && currentAction == "InvoicesList" ? "active" : "")">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                         <polyline points="14 2 14 8 20 8"/>
@@ -55,7 +82,7 @@
                     </svg>
                     Invoices
                 </a>
-                <a asp-controller="Account" asp-action="Login"  class="ow-nav-item">
+                <a asp-controller="Booking" asp-action="Bookings" class="ow-nav-item @(currentController == "Booking" && currentAction == "Bookings" ? "active" : "")">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M18 8h1a4 4 0 0 1 0 8h-1"/>
                         <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/>
@@ -63,35 +90,43 @@
                         <line x1="10" y1="1" x2="10" y2="4"/>
                         <line x1="14" y1="1" x2="14" y2="4"/>
                     </svg>
-                    Incoming Requests
+                    Incoming Bookings
                     @if (ViewBag.PendingCount != null && ViewBag.PendingCount > 0)
                     {
                         <span class="ow-nav-badge">@ViewBag.PendingCount</span>
                     }
                 </a>
-                <a  asp-controller="Account" asp-action="Login"  class="ow-nav-item">
+            </div>
+
+            <!-- Section 3: Menu Management -->
+            <div class="ow-nav-section">
+                <div class="ow-nav-label">Menu Management</div>
+                <a asp-controller="Menu" asp-action="MenuList" class="ow-nav-item @(currentController == "Menu" && currentAction == "MenuList" ? "active" : "")">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="8" y1="6" x2="21" y2="6"/>
-                        <line x1="8" y1="12" x2="21" y2="12"/>
-                        <line x1="8" y1="18" x2="21" y2="18"/>
-                        <line x1="3" y1="6" x2="3.01" y2="6"/>
-                        <line x1="3" y1="12" x2="3.01" y2="12"/>
-                        <line x1="3" y1="18" x2="3.01" y2="18"/>
+                        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+                        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
                     </svg>
                     Current Menu
                 </a>
+                <a asp-controller="Menu" asp-action="CreateMenu" class="ow-nav-item @(currentController == "Menu" && currentAction == "CreateMenu" ? "active" : "")">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 5v14M5 12h14" />
+                    </svg>
+                    Create Menu
+                </a>
             </div>
 
+            <!-- Section 4: Account -->
             <div class="ow-nav-section">
                 <div class="ow-nav-label">Account</div>
-                <a  asp-controller="Account" asp-action="Login"  class="ow-nav-item">
+                <a asp-controller="Account" asp-action="Login" class="ow-nav-item @(currentController == "Account" && currentAction == "Profile" ? "active" : "")">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                         <circle cx="12" cy="7" r="4"/>
                     </svg>
                     Profile
                 </a>
-                <a asp-controller="Account" asp-action="Logout"  class="ow-nav-item ow-nav-item--danger">
+                <a asp-controller="Account" asp-action="Logout" class="ow-nav-item ow-nav-item--danger">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
                         <polyline points="16 17 21 12 16 7"/>
@@ -105,12 +140,6 @@
         <div class="ow-sidebar-footer">
             <div class="ow-user-mini">
                 <div class="ow-avatar">
-                    @{
-                        var first    = User.FindFirst("FirstName")?.Value ?? "";
-                        var last     = User.FindFirst("LastName")?.Value  ?? "";
-                        var initials = (first.Length > 0 ? first[0].ToString() : "")
-                                     + (last.Length  > 0 ? last[0].ToString()  : "");
-                    }
                     @initials.ToUpper()
                 </div>
                 <div class="ow-user-info">
@@ -135,6 +164,9 @@
             </div>
 
             <div class="ow-navbar-right">
+                <div style="font-size: 13px; font-weight: 600; color: var(--navy-dark); background: #f3f4f6; padding: 6px 12px; border-radius: 6px; border: 1px solid #e5e7eb;">
+                    @workspaceName
+                </div>
 
                 <div class="ow-search">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

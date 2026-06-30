@@ -17,4 +17,12 @@
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.23" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Repositories\Booking\" />
+    <Folder Include="Repositories\Invoices\" />
+    <Folder Include="Repositories\Menu\" />
+    <Folder Include="Repositories\Owner\" />
+    <Folder Include="Repositories\WorkSpace\" />
+  </ItemGroup>
+
 </Project>

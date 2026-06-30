@@ -4,14 +4,12 @@ using Microsoft.AspNetCore.Mvc;
 namespace WebApplication1.Controllers.Owner
 {
     [Authorize(Roles = "Owner")]
-    public class OwnerController : Controller
+    public class BookingController : Controller
     {
-        public IActionResult Index()
+        public IActionResult Bookings()
         {
             var workspaceId = User.FindFirst("WorkspaceId")?.Value;
-            ViewData["PageTitle"] = "Owner Dashboard";
-            ViewData["Breadcrumb"] = "SpotIN · Owner Portal";
-            return View();
+            return View("Bookings", workspaceId);
         }
     }
 }
