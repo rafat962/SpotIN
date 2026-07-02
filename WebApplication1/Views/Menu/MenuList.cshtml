@@ -1,11 +1,170 @@
-﻿@{
+﻿@model IEnumerable<MenuItem>
+
+@{
     Layout = "_OwnerLayout";
-    ViewData["Title"]      = "Menu List";
-    ViewData["PageTitle"]  = "Menu List";
-    ViewData["Breadcrumb"] = "SpotIN · Owner Portal . Menu . Menu List";
+    ViewData["Title"] = "Menu Management";
+    ViewData["PageTitle"] = "Menu Management";
+    ViewData["Breadcrumb"] = "SpotIN · Management · Menu Items";
 }
 
+<link rel="stylesheet" href="~/css/Menu-theme.css" />
 
+<div class="si-page animate__animated animate__fadeIn">
 
+    <div class="si-page-header">
+        <div>
+            <span class="si-eyebrow">Menu Items</span>
+            <h1>Manage Menu Items</h1>
+            <p>View, update, toggle availability, or delete items offered in your workspace.</p>
+        </div>
+    </div>
 
-<p>msha3l Menu List</p>
+    <div id="ajax-alert" class="si-alert si-alert-success"></div>
+
+    <div class="si-card">
+        <div class="si-table-wrap">
+            <table class="si-table">
+
+                <thead>
+                    <tr>
+                        <th style="width: 30%;">Item Name</th>
+                        <th style="width: 20%;">Price</th>
+                        <th style="width: 15%; text-align:center;">Status</th>
+                        <th style="width: 20%; text-align:center;">Availability</th>
+                        <th style="width: 15%; text-align:right;">Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @if (Model == null || !Model.Any())
+                    {
+                        <tr>
+                            <td colspan="5" class="si-empty-state">
+                                <p>No items found in your workspace menu.</p>
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var item in Model)
+                        {
+                            <tr id="item-row-@item.Id">
+                                <td class="si-cell-name">@item.Name</td>
+
+                                <td class="si-cell-price">EGP @item.Price.ToString("F2")</td>
+
+                                <td style="text-align:center;">
+                                    <span id="badge-@item.Id" class="si-badge @(item.IsAvailable ? "si-badge-available" : "si-badge-unavailable")">
+                                        @(item.IsAvailable ? "Available" : "Unavailable")
+                                    </span>
+                                </td>
+
+                                <td style="text-align:center;">
+                                    <label class="si-switch">
+                                        <input type="checkbox" id="toggle-@item.Id" @(item.IsAvailable ? "checked" : "")
+                                               onclick="toggleAvailability(@item.Id)">
+                                        <span class="si-slider"></span>
+                                    </label>
+                                </td>
+
+                                <td>
+                                    <div class="si-actions">
+                                        <a asp-controller="Menu" asp-action="EditMenuItem" asp-route-id="@item.Id" class="si-btn si-btn-outline">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                                <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                                            </svg>
+                                            Edit
+                                        </a>
+
+                                        <button type="button" class="si-btn si-btn-danger-ghost" onclick="deleteItem(@item.Id)">
+                                            Delete
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="si-footer-actions">
+        <a asp-controller="Menu" asp-action="CreateMenu" class="si-btn si-btn-primary si-btn-lg">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            Add Item
+        </a>
+    </div>
+
+</div>
+
+@section Scripts {
+    <script>
+        // دالة تغيير حالة التوفر تلقائياً بدون تحديث الصفحة
+        function toggleAvailability(id) {
+            const isChecked = document.getElementById(`toggle-${id}`).checked;
+            const toggleUrl = '@Url.Action("ToggleAvailability", "Menu")' + '?id=' + id;
+
+            fetch(toggleUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    const badge = document.getElementById(`badge-${id}`);
+                    if (isChecked) {
+                        badge.textContent = "Available";
+                        badge.className = "si-badge si-badge-available";
+                    } else {
+                        badge.textContent = "Unavailable";
+                        badge.className = "si-badge si-badge-unavailable";
+                    }
+                    showToast("Status updated successfully.");
+                } else {
+                    document.getElementById(`toggle-${id}`).checked = !isChecked;
+                    alert("Action cannot be completed.");
+                }
+            })
+            .catch(() => {
+                document.getElementById(`toggle-${id}`).checked = !isChecked;
+                alert("Network error.");
+            });
+        }
+
+        // دالة حذف الصنف لحظياً
+        function deleteItem(id) {
+            if (confirm("Are you sure you want to delete this menu item?")) {
+                const deleteUrl = '@Url.Action("DeleteMenuItem", "Menu")' + '?id=' + id;
+
+                fetch(deleteUrl, {
+                    method: 'POST'
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById(`item-row-${id}`).remove();
+                        showToast("Item deleted successfully.");
+                    } else {
+                        alert("Action cannot be completed.");
+                    }
+                })
+                .catch(() => {
+                    alert("An error occurred while deleting the item.");
+                });
+            }
+        }
+
+        // إظهار إشعار النجاح العلوي بشكل أنيق
+        function showToast(message) {
+            const alertEl = document.getElementById('ajax-alert');
+            alertEl.textContent = "✔ " + message;
+            alertEl.style.display = 'flex';
+            setTimeout(() => { alertEl.style.display = 'none'; }, 3000);
+        }
+    </script>
+}
