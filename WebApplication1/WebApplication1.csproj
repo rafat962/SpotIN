@@ -18,8 +18,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Repositories\Booking\" />
-    <Folder Include="Repositories\Invoices\" />
     <Folder Include="Repositories\Menu\" />
     <Folder Include="Repositories\Owner\" />
     <Folder Include="Repositories\WorkSpace\" />

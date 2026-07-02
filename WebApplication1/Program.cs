@@ -5,6 +5,7 @@ using WebApplication1.Models.Domain.User;
 using WebApplication1.Repositories;
 using WebApplication1.Repositories.Auth;
 using WebApplication1.Repositories.Client;
+using WebApplication1.Repositories.Invoices;
 
 namespace WebApplication1
 {
@@ -23,6 +24,7 @@ namespace WebApplication1
 
             builder.Services.AddScoped<IAuthRepositorie,AuthRepository>();
             builder.Services.AddScoped<IClientRepository, ClientRepository>();
+            builder.Services.AddScoped<IInvoicesRepo, InvoicesRepository>();
 
 
             builder.Services.ConfigureApplicationCookie(options =>
