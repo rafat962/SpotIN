@@ -33,5 +33,6 @@ namespace WebApplication1.Models.Domain.WorkSpaces
         public virtual ApplicationUser? Owner { get; set; }
 
         public virtual ICollection<Resourse> Resourses { get; set; } = new List<Resourse>();
+        public virtual ICollection<Invoice> Invoices { get; set; } = new List<Invoice>();
     }
 }

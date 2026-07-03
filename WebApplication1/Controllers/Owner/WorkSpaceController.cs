@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using WebApplication1.Repositories.WorkSpaces;
 using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
@@ -22,17 +22,22 @@ namespace WebApplication1.Controllers.Owner
         public IActionResult MangeWorkSpace()
         {
             var ownerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            
-            if (ownerId == null)
-            {
-                return RedirectToAction("Login", "Account"); 
-            }
+            if (ownerId == null) return RedirectToAction("Login", "Account");
 
             var workspace = _workSpaceRepo.GetWorkSpaceByOwnerId(ownerId);
+            if (workspace == null)
+            {
+                ViewBag.Menu = new List<MenuItem>(); 
+                return View("MangeWorkSpace", null);
+            }
+
+   
+            ViewBag.Menu = _context.MenuItems
+                                   .Where(m => m.WorkSpaceID == workspace.Id)
+                                   .ToList();
 
             return View("MangeWorkSpace", workspace);
         }
-
         [HttpPost]
         public IActionResult CheckIn(int resourceId, string? userId) // خلينا userId تقبل Null
         {
@@ -57,6 +62,7 @@ namespace WebApplication1.Controllers.Owner
                 StartTime = currentTime,
                 Status = "Active" 
             };
+            resource.IsAvailable = false;
 
             // لو الأونر كتب إيميل، ندور عليه ونربطه.. لو مكتبش، نسجل الحجز من غير يوزر (Guest)
             if (!string.IsNullOrEmpty(userId))
@@ -70,42 +76,69 @@ namespace WebApplication1.Controllers.Owner
             }
             
             _context.Bookings.Add(booking);
-            _context.SaveChanges(); 
-            
-            return Json(new { success = true });
+            _context.SaveChanges();
+
+            return RedirectToAction("MangeWorkSpace");
+        
         }
 
         // دالة الـ End Session
         [HttpPost]
+
         public IActionResult EndSession(int resourceId)
         {
-            // بنجيب الترابيزة ومعاها كل الحجوزات اللي حالتها Active
-            var resource = _context.Resourses
-                .Include(r => r.Bookings.Where(b => b.Status == "Active"))
-                .FirstOrDefault(r => r.Id == resourceId);
-            
-            if (resource == null)
+            var workspaceClaim = User.FindFirst("WorkspaceId")?.Value;
+            if (string.IsNullOrEmpty(workspaceClaim) || !int.TryParse(workspaceClaim, out int currentWorkspaceId))
             {
-                return Json(new { success = false, message = "Resource not found." });
+                return RedirectToAction("AccessDenied", "Account");
             }
 
-            // ندور على أي حجز "Active" للترابيزة دي
-            var activeBooking = resource.Bookings.FirstOrDefault();
-            
+            var resource = _context.Resourses
+                .Include(r => r.Bookings)
+                .FirstOrDefault(r => r.Id == resourceId && r.WorkspaceId == currentWorkspaceId);
+
+            if (resource == null)
+            {
+                return Json(new { success = false, message = "Resource not found or access denied." });
+            }
+
+            var activeBooking = resource.Bookings.FirstOrDefault(b => b.Status == "Active");
+
             if (activeBooking != null)
             {
-                activeBooking.EndTime = DateTime.Now;
-                activeBooking.Status = "Completed"; 
-                
+                var endTime = DateTime.Now;
+                activeBooking.EndTime = endTime;
+                activeBooking.Status = "Completed";
+                resource.IsAvailable = true;
+
+                double totalHours = (endTime - activeBooking.StartTime).TotalHours;
+                if (totalHours < 0.1) totalHours = 1;
+                decimal totalHoursCost = (decimal)totalHours * resource.HourlyRate;
+
+
+                decimal totalOrdersCost = _context.Orders
+                    .Where(o => o.BookingId == activeBooking.Id)
+                    .SelectMany(o => _context.OrderDetails.Where(od => od.OrderId == o.Id))
+                    .Sum(od => (decimal?)od.Quantity * od.PriceAtSale) ?? 0.00m;
+
+                var invoice = new Invoice
+                {
+                    BookingId = activeBooking.Id,
+                    IssueDate = endTime,
+                    TotalHoursCost = Math.Round(totalHoursCost, 2),
+                    TotalOrdersCost = totalOrdersCost,
+                    GrandTotal = Math.Round(totalHoursCost + totalOrdersCost, 2),
+                    PaymentMethod = "Cash", 
+                    WorkSpaceId = currentWorkspaceId 
+                };
+
+                _context.Invoices.Add(invoice);
                 _context.SaveChanges();
-                return Json(new { success = true });
+
+                return Json(new { success = true, invoiceId = invoice.Id });
             }
-            else
-            {
-                // لو مفيش حجز active بس الترابيزة لسة حمراء، يبقى في داتا قديمة معلقة
-                // هنسمح للأونر ينهي الجلسة حتى لو الحجز مش موجود عشان يفك التعليق
-                return Json(new { success = true }); 
-            }
+
+            return Json(new { success = false, message = "No active session found for this resource." });
         }
 
         [HttpGet]
@@ -150,7 +183,7 @@ namespace WebApplication1.Controllers.Owner
             
             if (booking == null)
             {
-                return Json(new { success = false, message = "Booking not found." });
+                return RedirectToAction("MangeWorkSpace");
             }
 
             // بنغير الحالة بناءً على الزرار اللي الأونر داس عليه (Active, Completed, Cancelled)
@@ -164,7 +197,7 @@ namespace WebApplication1.Controllers.Owner
             }
 
             _context.SaveChanges();
-            return Json(new { success = true });
+            return RedirectToAction("MangeWorkSpace");
         }
 
         [HttpGet]
@@ -181,47 +214,69 @@ namespace WebApplication1.Controllers.Owner
             return Json(menu);
         }
 
-        [HttpPost]
-        public IActionResult AddOrderToSession(int bookingId, int menuItemId, int quantity)
+        [HttpGet]
+        public IActionResult GetSessionOrdersPartial(int bookingId)
         {
-            // 1. بنتأكد إن الحجز موجود
-            var booking = _context.Bookings.FirstOrDefault(b => b.Id == bookingId);
-            if (booking == null) return Json(new { success = false, message = "Session not found." });
+            var details = _context.OrderDetails
+                .Include(od => od.MenuItem)
+                .Include(od => od.Order)
+                .Where(od => od.Order!.BookingId == bookingId)
+                .OrderByDescending(od => od.Id)
+                .ToList();
 
-            // 2. بنجيب المنتج من المنيو عشان نعرف سعره
-            var menuItem = _context.MenuItems.FirstOrDefault(m => m.Id == menuItemId);
-            if (menuItem == null) return Json(new { success = false, message = "Item not found." });
+            return PartialView("_SessionOrdersList", details);
+        }
 
-            // 3. بنشوف هل الحجز ده ليه فاتورة/أوردر مفتوح أصلاً ولا لأ؟
+        [HttpPost]
+        public IActionResult AddOrdersToSession(int bookingId, [FromForm] List<int> menuItemId, [FromForm] List<int> quantity)
+        {
+            var booking = _context.Bookings.FirstOrDefault(b => b.Id == bookingId && b.Status == "Active");
+            if (booking == null)
+                return Json(new { success = false, message = "Active session not found." });
+
+            if (menuItemId == null || quantity == null || menuItemId.Count == 0)
+                return Json(new { success = false, message = "Add at least one item." });
+
             var order = _context.Orders.FirstOrDefault(o => o.BookingId == bookingId);
-            
-            // لو ملوش أوردر، بنكريتله واحد جديد
             if (order == null)
             {
-                order = new Order 
-                { 
-                    BookingId = bookingId, 
+                order = new Order
+                {
+                    BookingId = bookingId,
                     OrderDate = DateTime.Now,
-                    OrderStatus = "Pending" 
+                    OrderStatus = "Pending"
                 };
                 _context.Orders.Add(order);
-                _context.SaveChanges(); // بنسيف عشان ناخد الـ ID بتاع الأوردر
+                _context.SaveChanges();
             }
 
-            // 4. بنضيف المنتج (OrderDetail) جوه الأوردر ده
-            var orderDetail = new OrderDetails 
+            var addedCount = 0;
+            for (var i = 0; i < menuItemId.Count; i++)
             {
-                OrderId = order.Id,
-                MenuItemId = menuItemId,
-                Quantity = quantity,
-                // التعديل هنا: استخدمنا PriceAtSale زي ما موجود في الموديل بتاعك
-                PriceAtSale = menuItem.Price * quantity 
-            };
-            
-            _context.OrderDetails.Add(orderDetail);
-            _context.SaveChanges();
+                if (i >= quantity.Count) break;
 
-            return Json(new { success = true });
+                var itemId = menuItemId[i];
+                var qty = quantity[i];
+                if (itemId <= 0 || qty <= 0) continue;
+
+                var menuItem = _context.MenuItems.FirstOrDefault(m => m.Id == itemId);
+                if (menuItem == null) continue;
+
+                _context.OrderDetails.Add(new OrderDetails
+                {
+                    OrderId = order.Id,
+                    MenuItemId = itemId,
+                    Quantity = qty,
+                    PriceAtSale = menuItem.Price
+                });
+                addedCount++;
+            }
+
+            if (addedCount == 0)
+                return Json(new { success = false, message = "No valid items were added." });
+
+            _context.SaveChanges();
+            return Json(new { success = true, message = $"{addedCount} item(s) added to the bill.", bookingId });
         }
     }
 }

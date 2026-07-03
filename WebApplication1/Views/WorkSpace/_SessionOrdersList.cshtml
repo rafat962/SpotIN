@@ -1,0 +1,39 @@
+@model IEnumerable<OrderDetails>
+
+@if (Model == null || !Model.Any())
+{
+    <div class="wf-empty-orders text-center py-3">
+        <i class="bi bi-cart3 text-muted fs-4 d-block mb-2"></i>
+        <span class="text-muted small">No items on this bill yet.</span>
+    </div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-sm wf-orders-table mb-0 align-middle">
+            <thead>
+                <tr>
+                    <th class="ps-3">Item</th>
+                    <th class="text-center">Qty</th>
+                    <th class="text-end pe-3">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var detail in Model)
+                {
+                    <tr>
+                        <td class="ps-3 fw-medium">@(detail.MenuItem?.Name ?? "Item")</td>
+                        <td class="text-center"><span class="badge bg-light text-dark border">x@detail.Quantity</span></td>
+                        <td class="text-end pe-3 fw-semibold text-success">@((detail.PriceAtSale * detail.Quantity).ToString("N2")) EGP</td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr class="table-light">
+                    <td colspan="2" class="ps-3 fw-bold text-secondary">Bill subtotal</td>
+                    <td class="text-end pe-3 fw-bold text-primary">@Model.Sum(d => d.PriceAtSale * d.Quantity).ToString("N2") EGP</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+}

@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-
+using WebApplication1.Models.Domain.WorkSpaces;
 public class Invoice
 {
     public int Id { get; set; }
@@ -25,4 +25,9 @@ public class Invoice
 
     [Required(ErrorMessage = "Payment method is required")]
     public string? PaymentMethod { get; set; }
+    [Required]
+    public int WorkSpaceId { get; set; }
+
+    [ForeignKey("WorkSpaceId")]
+    public virtual WorkSpace? WorkSpace { get; set; }
 }

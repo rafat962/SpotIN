@@ -8,6 +8,7 @@ using WebApplication1.Repositories.Client;
 using WebApplication1.Repositories.WorkSpaces;
 using WebApplication1.Repositories.Invoices;
 using WebApplication1.Repositories.Menu;
+using WebApplication1.Repositories.Profile;
 
 namespace WebApplication1
 {
@@ -22,7 +23,7 @@ namespace WebApplication1
             builder.Services.AddControllersWithViews();
 
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
             builder.Services.AddScoped<IAuthRepositorie,AuthRepository>();
             builder.Services.AddScoped<IClientRepository, ClientRepository>();
@@ -31,6 +32,7 @@ namespace WebApplication1
 
             builder.Services.AddScoped<IMenuItemRepository, MenuItemRepository>();
             builder.Services.AddScoped<IInvoicesRepo, InvoicesRepository>();
+            builder.Services.AddScoped<IOwnerProfileRepository, OwnerProfileRepository>();
 
             builder.Services.ConfigureApplicationCookie(options =>
             {

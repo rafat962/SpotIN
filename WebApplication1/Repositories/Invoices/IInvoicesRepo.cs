@@ -4,7 +4,7 @@
     {
         // Define methods for invoice-related operations
         //Get all invoices 
-        Task<IEnumerable<Invoice>> GetAllInvoicesAsync();
+        Task<IEnumerable<Invoice>> GetAllInvoicesAsync(int workspaceId);
         //Get invoice by ID
         Task<Invoice?> GetInvoiceByIdAsync(int id);
         //Get invoices by user ID

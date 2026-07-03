@@ -45,15 +45,16 @@ namespace WebApplication1.Repositories.Invoices
         }
 
 
-        public async Task<IEnumerable<Invoice>> GetAllInvoicesAsync()
+        public async Task<IEnumerable<Invoice>> GetAllInvoicesAsync(int workspaceId)
         {
-               return await _db.Invoices
+            return await _db.Invoices
                 .Include(i => i.Booking)
-                     .ThenInclude(b => b.User)
+                    .ThenInclude(b => b.User)
                 .Include(i => i.Booking)
                     .ThenInclude(b => b.Resourse)
+                .Where(i => i.WorkSpaceId == workspaceId) 
                 .OrderByDescending(i => i.IssueDate)
-                .ToListAsync(); 
+                .ToListAsync();
         }
 
         public async Task<Invoice?> GetInvoiceByIdAsync(int id)

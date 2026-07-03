@@ -18,7 +18,10 @@ namespace WebApplication1.Repositories.WorkSpaces
         {
             return _context.WorkSpaces
                .Include(w => w.Resourses)
-                   .ThenInclude(r => r.Bookings) 
+                   .ThenInclude(r => r.Bookings)
+                       .ThenInclude(b => b.Orders)
+                           .ThenInclude(o => o.OrderDetails)
+                               .ThenInclude(od => od.MenuItem)
                .FirstOrDefault(w => w.OwnerId == ownerId);
         }
     }

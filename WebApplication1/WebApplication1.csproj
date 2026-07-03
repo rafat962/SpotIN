@@ -23,6 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Migrations\" />
     <Folder Include="Repositories\Booking\" />
     <Folder Include="Repositories\Invoices\" />
     <Folder Include="Repositories\Menu\" />

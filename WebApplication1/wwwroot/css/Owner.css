@@ -1,4 +1,4 @@
-﻿/* ─── SpotIN Owner Layout ─── */
+/* ─── SpotIN Owner Layout ─── */
 
 :root {
     --ow-primary: #2d4fa1;
@@ -763,4 +763,22 @@ body {
 .ow-ws-sub {
     font-size: 11px;
     color: var(--ow-text-muted);
+}
+
+/* Invoice modals */
+#invoiceDisplayModal .modal-content,
+#invoiceModal .modal-content {
+    border-radius: 16px;
+    border: none;
+    overflow: hidden;
+}
+
+#invoiceDisplayModal .modal-body,
+#invoiceModal .modal-body {
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.invoice-receipt {
+    color: var(--ow-text-primary);
 }

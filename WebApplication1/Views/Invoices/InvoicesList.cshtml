@@ -1,4 +1,4 @@
-﻿@model IEnumerable<Invoice>
+@model IEnumerable<Invoice>
 @{
     Layout = "_OwnerLayout";
     ViewData["Title"] = "Invoices";
@@ -128,38 +128,31 @@
     </div>
 </div>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
+@section Scripts {
 <script>
     $(document).ready(function () {
-    $('.view-details-btn').off('click').on('click', function (e) {
-    e.preventDefault();
-    var invoiceId = $(this).data('id');
-            
-    $('#modalBody').html('<div class="p-5 text-center"><div class="spinner-border text-primary" role="status"></div><p class="mt-2 mb-0 text-muted">Loading invoice breakdown...</p></div>');
-    $('#invoiceModal').modal('show');
+        $('.view-details-btn').off('click').on('click', function (e) {
+            e.preventDefault();
+            var invoiceId = $(this).data('id');
 
-    // سحب الـ Partial View وعرضه بأمان
-    $.ajax({
-    url: '/Invoices/GetDetails/' + invoiceId,
-    type: 'GET',
-    success: function (data) {
-    $('#modalBody').html(data);
-    },
-    error: function (xhr) {
-    $('#modalBody').html('<div class="p-4 text-center text-danger"><i class="bi bi-exclamation-triangle fs-3 d-block mb-2"></i>Error loading details. Status: ' + xhr.status + '</div>');
-    }
-    });
-    });
-    });
+            $('#modalBody').html('<div class="p-5 text-center"><div class="spinner-border text-primary" role="status"></div><p class="mt-2 mb-0 text-muted">Loading invoice breakdown...</p></div>');
 
-    function printInvoice() {
-    var printContents = document.getElementById('printableInvoice').innerHTML;
-    var originalContents = document.body.innerHTML;
-    document.body.innerHTML = printContents;
-    window.print();
-    document.body.innerHTML = originalContents;
-    window.location.reload();
-    }
+            const invoiceModalEl = document.getElementById('invoiceModal');
+            const invoiceModal = bootstrap.Modal.getOrCreateInstance(invoiceModalEl);
+            invoiceModal.show();
+
+            $.ajax({
+                url: '/Invoices/GetDetails/' + invoiceId,
+                type: 'GET',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                success: function (data) {
+                    $('#modalBody').html(data);
+                },
+                error: function (xhr) {
+                    $('#modalBody').html('<div class="p-4 text-center text-danger"><i class="bi bi-exclamation-triangle fs-3 d-block mb-2"></i>Error loading details. Status: ' + xhr.status + '</div>');
+                }
+            });
+        });
+    });
 </script>
+}
