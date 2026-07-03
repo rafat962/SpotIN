@@ -5,6 +5,7 @@ using WebApplication1.Models.Domain.User;
 using WebApplication1.Repositories;
 using WebApplication1.Repositories.Auth;
 using WebApplication1.Repositories.Client;
+using WebApplication1.Repositories.WorkSpaces;
 
 namespace WebApplication1
 {
@@ -19,10 +20,12 @@ namespace WebApplication1
             builder.Services.AddControllersWithViews();
 
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+                options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
             builder.Services.AddScoped<IAuthRepositorie,AuthRepository>();
             builder.Services.AddScoped<IClientRepository, ClientRepository>();
+
+            builder.Services.AddScoped<IWorkSpaceRepository, WorkSpaceRepository>();
 
 
             builder.Services.ConfigureApplicationCookie(options =>

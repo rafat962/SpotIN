@@ -7,6 +7,7 @@ using WebApplication1.Models.Domain.User;
 using WebApplication1.Models.ViewModel.Account;
 using WebApplication1.Models.ViewModels;
 using WebApplication1.Repositories.Auth;
+using WebApplication1.Models.Domain.WorkSpaces;
 
 namespace WebApplication1.Repositories
 {
@@ -83,7 +84,7 @@ namespace WebApplication1.Repositories
 
         public async Task<int?> CreateWorkspaceAsync(WorkspaceSetupViewModel model, string ownerId)
         {
-            var workspace = new WorkSpace
+            var workspace = new WebApplication1.Models.Domain.WorkSpaces.WorkSpace
             {
                 Name = model.Name,
                 Address = model.Address,

@@ -8,11 +8,11 @@ using System.ComponentModel.DataAnnotations.Schema;
 
         public int OrderId { get; set; }
         [ForeignKey("OrderId")]
-        public virtual Order Order { get; set; }
+        public virtual Order? Order { get; set; }
 
         public int MenuItemId { get; set; }
         [ForeignKey("MenuItemId")]
-        public virtual MenuItem MenuItem { get; set; }
+        public virtual MenuItem? MenuItem { get; set; }
 
         [Range(1, 100, ErrorMessage = "Quantity must be between 1 and 100")]
         public int Quantity { get; set; }

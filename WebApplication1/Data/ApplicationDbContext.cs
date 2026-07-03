@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using WebApplication1.Models.Domain.User;
+using WebApplication1.Models.Domain.WorkSpaces;
 using preSpotIn.Models; 
 
 namespace WebApplication1.Data

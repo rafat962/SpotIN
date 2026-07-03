@@ -1,0 +1,41 @@
+@model WebApplication1.Models.Domain.WorkSpaces.WorkSpace
+
+<div class="row">
+    @if(Model != null && Model.Resourses != null && Model.Resourses.Any())
+    {
+        @foreach(var item in Model.Resourses)
+        {
+            // 1. نجيب الوقت الحالي
+            var currentTime = DateTime.Now;
+            
+            // 2. نسأل: هل الترابيزة دي ليها حجز "Active" ووقت بدايته جه، ووقت نهايته لسة مجاش (أو ملوش نهاية لسة)؟
+            bool isOccupiedNow = item.Bookings != null && item.Bookings.Any(b => 
+                b.Status == "Active" && 
+                b.StartTime <= currentTime && 
+                (b.EndTime == null || b.EndTime > currentTime)
+            );
+
+            // 3. نحدد اللون والحالة بناءً على اللوجيك الجديد
+            string cardStyle = isOccupiedNow ? "status-occupied" : "status-available";
+            string jsStatus = isOccupiedNow ? "false" : "true"; 
+
+            bool isRoom = (item.Type != null && item.Type.Contains("Room")) || (item.Name != null && item.Name.StartsWith("R"));
+            string shapeClass = isRoom ? "resource-room" : "resource-table";
+            string icon = isRoom ? "<i class='fa-solid fa-users'></i>" : "<i class='fa-solid fa-laptop'></i>"; 
+            
+            <div class="col-xl-2 col-lg-2 col-md-3 col-sm-4 col-6 mb-3">
+                <div class="card resource-card text-white text-center @cardStyle @shapeClass" 
+                    onclick="handleResourceClick(@item.Id, '@item.Name')">
+                    <div class="d-flex flex-column align-items-center justify-content-center w-100">
+                        <span class="resource-icon">@Html.Raw(icon)</span>
+                        <h6 class="m-0 card-title-custom mt-1">@item.Name</h6>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <p class="text-muted">No tables or rooms found in this workspace.</p>
+    }
+</div>
