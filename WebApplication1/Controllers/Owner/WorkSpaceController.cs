@@ -145,22 +145,24 @@ namespace WebApplication1.Controllers.Owner
         [HttpPost]
         public IActionResult ChangeBookingStatus(int bookingId, string newStatus)
         {
-            // بندور على الحجز برقم الـ ID بتاعه
             var booking = _context.Bookings.FirstOrDefault(b => b.Id == bookingId);
-            
-            if (booking == null)
-            {
-                return Json(new { success = false, message = "Booking not found." });
-            }
+            if (booking == null) return Json(new { success = false, message = "Booking not found." });
 
-            // بنغير الحالة بناءً على الزرار اللي الأونر داس عليه (Active, Completed, Cancelled)
             booking.Status = newStatus;
 
-            // لو الأونر بيعمل End Session، بنسجل وقت النهاية الفعلي دلوقتي
+            // بنجيب الترابيزة المرتبطة بالحجز ده
+            var resource = _context.Resourses.FirstOrDefault(r => r.Id == booking.ResourceId);
+
             if (newStatus == "Completed")
             {
                 booking.EndTime = DateTime.Now;
-                // هنا زميلك هيقدر يربط دالة توليد الفاتورة (Invoice) في المستقبل
+                // بنرجع الترابيزة متاحة تاني
+                if (resource != null) resource.IsAvailable = true; 
+            }
+            else if (newStatus == "Active")
+            {
+                // بنقفل الترابيزة وقت الـ Check-in
+                if (resource != null) resource.IsAvailable = false;
             }
 
             _context.SaveChanges();

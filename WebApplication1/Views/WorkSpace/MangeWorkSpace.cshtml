@@ -334,7 +334,6 @@
                 .catch(err => console.error('Error fetching menu:', err));
         }
 
-        // 2. الدالة دي بتبعت الطلب للداتا بيز عشان يتسيف
         function submitOrder() {
             const bookingId = document.getElementById('orderBookingId').value;
             const menuItemId = document.getElementById('menuItemSelect').value;
@@ -345,16 +344,19 @@
                 return;
             }
 
-            // بنبعت الداتا للكنترولر
             fetch(`/WorkSpace/AddOrderToSession?bookingId=${bookingId}&menuItemId=${menuItemId}&quantity=${quantity}`, {
                 method: 'POST'
             })
             .then(response => response.json())
             .then(data => {
                 if(data.success) {
-                    bootstrap.Modal.getInstance(document.getElementById('addOrderModal')).hide();
-                    // ممكن نطلع رسالة Toast أو Alert شيك إن الطلب انضاف
-                    alert("✅ Order added successfully to this session!");
+                    // شيلنا السطر اللي بيقفل المودال!
+                    // المودال هيفضل مفتوح زي ما هو
+                    
+                    // بنطلع رسالة تأكيد صغيرة وبنرجع الكمية لـ 1
+                    alert("✅ Item added to the bill successfully! You can select another item.");
+                    document.getElementById('orderQuantity').value = 1;
+                    
                 } else {
                     alert('Error: ' + data.message);
                 }
