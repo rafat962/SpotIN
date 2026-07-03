@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WebApplication1.Data;
 
@@ -11,9 +12,11 @@ using WebApplication1.Data;
 namespace WebApplication1.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260701090447_init")]
+    partial class init
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -533,7 +536,7 @@ namespace WebApplication1.Migrations
                         {
                             Id = "3c4d5e6f-7a8b-9c0d-1e2f-3a4b5c6d7e8f",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "33738161-9f05-4c22-b0b0-aa953cfa4222",
+                            ConcurrencyStamp = "70b512bb-56a7-4bb6-a5a4-55a0fc75b25d",
                             Email = "owner@spotin.com",
                             EmailConfirmed = true,
                             FirstName = "Workspace",
@@ -541,9 +544,9 @@ namespace WebApplication1.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "OWNER@SPOTIN.COM",
                             NormalizedUserName = "OWNER@SPOTIN.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEOHMexftU+/xt0s8v2Tz1spi6NtWhRuvQU2AaZi7PZre47zVWigUYiwFDKjkPm70Rg==",
+                            PasswordHash = "AQAAAAIAAYagAAAAELLDDGnRCVwEblEuGR9F7g6GYABYsyaIPl2SEo3bw4zKnAw/aMg+zTK0aCTEIUlNdg==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "84d1be6f-137e-4c3e-a9e6-23ec54dfa83c",
+                            SecurityStamp = "b7beec98-5115-4b4f-8115-22ffee5c7d7e",
                             TwoFactorEnabled = false,
                             UserName = "owner@spotin.com",
                             WalletBalance = 500.00m
@@ -552,7 +555,7 @@ namespace WebApplication1.Migrations
                         {
                             Id = "4d5e6f7a-8b9c-0d1e-2f3a4b5c6d7e8f9a",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "10bb34cb-6b83-45a1-80db-0ae9f88bdafa",
+                            ConcurrencyStamp = "fad61d55-7b6f-44a5-9c6d-00263ccf10cc",
                             Email = "client@spotin.com",
                             EmailConfirmed = true,
                             FirstName = "Normal",
@@ -560,9 +563,9 @@ namespace WebApplication1.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "CLIENT@SPOTIN.COM",
                             NormalizedUserName = "CLIENT@SPOTIN.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEN2iE4nS7YDsSMmiLhjeDOqgl0YHjGFobtGMBcmL787BusALAbDwJ5iVVDoCE6FtXw==",
+                            PasswordHash = "AQAAAAIAAYagAAAAECvNpazlJThGl1ezlrURQE7577Eu0SF0JQ5oKeACM52SOMVf1kCh7MQKZsZMSULltA==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "c0dde033-5542-4c48-a885-4198897d82ed",
+                            SecurityStamp = "0188710b-dc31-4cf6-acca-fbadf391340b",
                             TwoFactorEnabled = false,
                             UserName = "client@spotin.com",
                             WalletBalance = 150.00m
