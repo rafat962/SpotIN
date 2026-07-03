@@ -5,8 +5,8 @@ using WebApplication1.Models.Domain.User;
 using WebApplication1.Repositories;
 using WebApplication1.Repositories.Auth;
 using WebApplication1.Repositories.Client;
-using WebApplication1.Repositories.Menu;
 using WebApplication1.Repositories.Invoices;
+using WebApplication1.Repositories.Menu;
 
 namespace WebApplication1
 {
@@ -27,7 +27,6 @@ namespace WebApplication1
             builder.Services.AddScoped<IClientRepository, ClientRepository>();
             builder.Services.AddScoped<IMenuItemRepository, MenuItemRepository>();
             builder.Services.AddScoped<IInvoicesRepo, InvoicesRepository>();
-
 
             builder.Services.ConfigureApplicationCookie(options =>
             {
