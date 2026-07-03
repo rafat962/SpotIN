@@ -1,11 +1,120 @@
-﻿@{
+﻿@model List<MenuItem>
+
+@{
     Layout = "_OwnerLayout";
-    ViewData["Title"]      = "Create List";
-    ViewData["PageTitle"]  = "Create List";
-    ViewData["Breadcrumb"] = "SpotIN · Owner Portal . Menu . Create List";
+    ViewData["Title"] = "Create Menu";
+    ViewData["PageTitle"] = "Create Menu";
+    ViewData["Breadcrumb"] = "SpotIN · Management · Menu";
 }
 
+<link rel="stylesheet" href="~/css/menu-theme.css" />
 
+<div class="si-page animate__animated animate__fadeIn">
 
+    <div class="si-page-header">
+        <div>
+            <span class="si-eyebrow">Menu Setup</span>
+            <h1>Create Workspace Menu</h1>
+            <p>Add delicious items, drinks, or snacks available at your space for your clients.</p>
+        </div>
+    </div>
 
-<p>msha3l Create List</p>
+    @if (ViewBag.HasMenu != null && (bool)ViewBag.HasMenu)
+    {
+        <div class="si-notice si-notice-warning" role="alert">
+            <strong>Important Notice:</strong> This workspace already has an active menu. Adding items here will expand your current offerings.
+        </div>
+    }
+    else
+    {
+        <div class="si-notice si-notice-info" role="alert">
+            <strong>Welcome!</strong> No menu items registered yet. Let's build your workspace's first menu right now.
+        </div>
+    }
+
+    <div class="si-form-card">
+        <form asp-area="Owner" asp-controller="Menu" asp-action="CreateMenu" method="post" id="menuForm">
+            <div id="menuItemsContainer">
+
+                <div class="si-item-row item-row">
+                    <div class="si-field">
+                        <label>Item Name</label>
+                        <input type="text" name="[0].Name" placeholder="e.g., Turkish Coffee, Mineral Water, Croissant" required />
+                    </div>
+                    <div class="si-field">
+                        <label>Price (EGP)</label>
+                        <input type="number" step="0.01" min="0" name="[0].Price" placeholder="0.00" required />
+                    </div>
+                    <button type="button" class="si-remove-btn remove-btn d-none" onclick="removeRow(this)">
+                        Remove
+                    </button>
+                </div>
+
+            </div>
+
+            <div class="si-form-footer">
+                <button type="button" id="addItemBtn" class="si-btn si-btn-add si-btn-lg">
+                    <span class="si-icon-badge">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19" />
+                            <line x1="5" y1="12" x2="19" y2="12" />
+                        </svg>
+                    </span>
+                    Add Another Item
+                </button>
+
+                <button type="submit" class="si-btn si-btn-primary si-btn-lg">
+                    Save Menu
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let rowIndex = 1;
+
+        document.getElementById('addItemBtn').addEventListener('click', function() {
+            let container = document.getElementById('menuItemsContainer');
+
+            let newRow = document.createElement('div');
+            newRow.className = 'si-item-row item-row animate__animated animate__fadeIn';
+
+            newRow.innerHTML = `
+                <div class="si-field">
+                    <label>Item Name</label>
+                    <input type="text" name="[${rowIndex}].Name" placeholder="Enter item name" required />
+                </div>
+                <div class="si-field">
+                    <label>Price (EGP)</label>
+                    <input type="number" step="0.01" min="0" name="[${rowIndex}].Price" placeholder="0.00" required />
+                </div>
+                <button type="button" class="si-remove-btn remove-btn" onclick="removeRow(this)">Remove</button>
+            `;
+
+            container.appendChild(newRow);
+            rowIndex++;
+        });
+
+        function removeRow(button) {
+            let row = button.closest('.item-row');
+            row.remove();
+            reIndexRows();
+        }
+
+        function reIndexRows() {
+            let rows = document.querySelectorAll('.item-row');
+            rowIndex = 0;
+            rows.forEach((row) => {
+                let nameInput = row.querySelector('input[type="text"]');
+                let priceInput = row.querySelector('input[type="number"]');
+
+                if(nameInput) nameInput.name = `[${rowIndex}].Name`;
+                if(priceInput) priceInput.name = `[${rowIndex}].Price`;
+
+                rowIndex++;
+            });
+        }
+    </script>
+}

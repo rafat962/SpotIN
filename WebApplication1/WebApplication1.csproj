@@ -19,6 +19,8 @@
 
   <ItemGroup>
     <Folder Include="Repositories\Menu\" />
+    <Folder Include="Repositories\Booking\" />
+    <Folder Include="Repositories\Invoices\" />
     <Folder Include="Repositories\Owner\" />
     <Folder Include="Repositories\WorkSpace\" />
   </ItemGroup>
