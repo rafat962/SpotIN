@@ -1,11 +1,379 @@
-﻿@{
+﻿@model WebApplication1.Models.Domain.WorkSpaces.WorkSpace
+@{
     Layout = "_OwnerLayout";
     ViewData["Title"]      = "Manage Workspace";
     ViewData["PageTitle"]  = "Manage Workspace";
     ViewData["Breadcrumb"] = "SpotIN · Owner Portal . Manage Workspace";
 }
 
+<style>
+    .resource-card {
+        border: none;
+        border-radius: 12px; /* زوايا ناعمة بس أصغر شوية */
+        min-height: 85px; /* صغرنا ارتفاع الكارت */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+        cursor: pointer;
+        padding: 10px !important; /* تقليل المسافات الداخلية */
+    }
 
+    .resource-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    }
 
+    /* الألوان */
+    .status-available { background: linear-gradient(135deg, #20c997 0%, #198754 100%); }
+    .status-occupied { background: linear-gradient(135deg, #f87171 0%, #dc3545 100%); }
+    .status-pending { background: linear-gradient(135deg, #f6ad55 0%, #ed8936 100%); } /* لون الانتظار البرتقالي */
 
-<p>Hussin mange workSpace</p>
+    .card-title-custom {
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        font-size: 1rem; /* تصغير حجم الخط */
+    }
+
+    /* --- تنسيقات الـ Modals تفضل زي ما هي --- */
+    .custom-modal .modal-content {
+        border-radius: 24px;
+        border: none;
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+    }
+    .custom-modal .modal-header {
+        border-bottom: none;
+        padding: 30px 30px 15px;
+    }
+    .custom-modal .modal-title {
+        font-weight: 700;
+        color: #2d3748;
+    }
+    .custom-modal .modal-body {
+        padding: 0 30px 20px;
+        color: #4a5568;
+    }
+    .custom-modal .modal-footer {
+        border-top: none;
+        padding: 15px 30px 30px;
+    }
+    .custom-input {
+        border-radius: 12px;
+        padding: 14px 18px;
+        border: 1px solid #e2e8f0;
+        background-color: #f8fafc;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+    }
+    .custom-input:focus {
+        border-color: #20c997;
+        background-color: #ffffff;
+        box-shadow: 0 0 0 4px rgba(32, 201, 151, 0.15);
+        outline: none;
+    }
+    .btn-custom {
+        border-radius: 12px;
+        padding: 12px 24px;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+        transition: all 0.3s ease;
+        border: none;
+    }
+    .btn-custom:hover {
+        transform: translateY(-2px);
+    }
+
+    /* شكل الترابيزات (زوايا شبه مربعة) */
+    .resource-table {
+        border-radius: 8px;
+    }
+
+    /* شكل الغرف (بيضاوي وليه إطار مميز) */
+    .resource-room {
+        border-radius: 25px;
+        border: 2px dashed rgba(255, 255, 255, 0.6);
+        transform: scale(1.02); /* الغرفة بتكون بارزة سنة بسيطة */
+    }
+
+    /* تنسيق الأيقونة جوه الكارت */
+    .resource-icon {
+        font-size: 1.5rem;
+        margin-bottom: 5px;
+        opacity: 0.9;
+    }
+</style>
+
+<div class="container-fluid mt-4">
+    <h4 class="mb-4">Live Floor Preview</h4>
+    
+    @if (Model == null)
+    {
+        <div class="alert alert-warning">
+            No workspace is currently associated with your account.
+        </div>
+    }
+    else
+    {
+        <div class="mb-4">
+            <span class="badge bg-success me-2 p-2">Available</span>
+            <span class="badge bg-danger me-2 p-2">Occupied</span>
+            <span class="badge bg-warning text-dark p-2">Pending</span> 
+        </div>
+
+        <div id="live-floor-container">
+            <partial name="_LiveFloor" model="Model" />
+        </div>
+    }
+</div>
+
+<div class="modal fade" id="manageResourceModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg"> <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="manageModalTitle">Manage Resource</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="currentResourceId" />
+                
+                <!-- 1. منطقة الأكشن السريع (Check-in فوري أو إضافة طلبات) -->
+                <div id="quickActionsArea" class="mb-4 p-3 border rounded bg-light">
+                    <!-- الجافاسكريبت هيحط الزراير هنا بناءً على حالة الترابيزة -->
+                </div>
+                
+                <!-- 2. جدول عرض الحجوزات المجدولة -->
+                <h6 class="text-muted mb-2">Scheduled Bookings</h6>
+                <div class="table-responsive">
+                    <table class="table table-hover table-bordered text-center">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Date</th>
+                                <th>Start Time</th>
+                                <th>End Time</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bookingsTableBody">
+                            <!-- الجافاسكريبت هيملا السطور دي -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal إضافة طلبات (Add Order) -->
+<div class="modal fade" id="addOrderModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title">☕ Add Order to Session</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="orderBookingId" />
+                
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Select Item</label>
+                    <select id="menuItemSelect" class="form-select">
+                        <option value="">Loading menu...</option>
+                        <!-- الجافاسكريبت هيملا المنيو هنا -->
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Quantity</label>
+                    <input type="number" id="orderQuantity" class="form-control" value="1" min="1" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-warning fw-bold" onclick="submitOrder()">➕ Add to Bill</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // 1. الدالة اللي بتشتغل أول ما تدوس على كارت الترابيزة
+        function handleResourceClick(resourceId, resourceName) {
+            document.getElementById('manageModalTitle').innerText = 'Manage: ' + resourceName;
+            document.getElementById('currentResourceId').value = resourceId;
+
+            fetch('/WorkSpace/GetResourceBookings?resourceId=' + resourceId)
+                .then(response => response.json())
+                .then(data => {
+                    const tbody = document.getElementById('bookingsTableBody');
+                    const quickActions = document.getElementById('quickActionsArea');
+                    tbody.innerHTML = ''; 
+
+                    // 1. بندور هل فيه حجز شغال (Active) دلوقتي على الترابيزة دي؟
+                    const activeBooking = data.find(b => b.status === 'Active');
+
+                    // 2. بنرسم زراير الـ Quick Actions بناءً على الحالة
+                    if (activeBooking) {
+                        // الترابيزة مشغولة دلوقتي
+                        quickActions.innerHTML = `
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-danger fw-bold"><span class="badge bg-danger">Occupied</span> Session in progress</span>
+                                <div>
+                                    <button class="btn btn-dark btn-sm me-2" onclick="addOrder(${activeBooking.bookingId})">Add Order ☕</button>
+                                    <button class="btn btn-danger btn-sm" onclick="changeStatus(${activeBooking.bookingId}, 'Completed')">End Session</button>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        // الترابيزة متاحة دلوقتي (نقدر نعملها Walk-in Check-In)
+                        quickActions.innerHTML = `
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-success fw-bold"><span class="badge bg-success">Available</span> Ready for walk-in</span>
+                                <div class="input-group w-50">
+                                    <input type="text" id="walkInEmail" class="form-control form-control-sm" placeholder="Client Email (Optional)">
+                                    <button class="btn btn-success btn-sm" onclick="walkInCheckIn(${resourceId})">Check-In</button>
+                                </div>
+                            </div>
+                        `;
+                    }
+
+                    // 3. بنرسم جدول الحجوزات المجدولة عادي جداً
+                    if(data.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="5" class="text-muted">No scheduled bookings found.</td></tr>';
+                    } else {
+                        data.forEach(b => {
+                            let actions = '';
+                            if (b.status === 'Pending') {
+                                actions = `
+                                    <button class="btn btn-sm btn-success me-1" onclick="changeStatus(${b.bookingId}, 'Active')">Check-in</button>
+                                    <button class="btn btn-sm btn-danger" onclick="changeStatus(${b.bookingId}, 'Cancelled')">Cancel</button>
+                                `;
+                            } else if (b.status === 'Active') {
+                                actions = `<span class="text-success fw-bold">Current Session</span>`;
+                            } else {
+                                actions = `<span class="text-muted">-</span>`;
+                            }
+
+                            tbody.innerHTML += `
+                                <tr>
+                                    <td>${b.date}</td>
+                                    <td>${b.startTime}</td>
+                                    <td>${b.endTime}</td>
+                                    <td><span class="badge ${b.status === 'Active' ? 'bg-success' : 'bg-primary'}">${b.status}</span></td>
+                                    <td>${actions}</td>
+                                </tr>
+                            `;
+                        });
+                    }
+                    
+                    var manageModal = new bootstrap.Modal(document.getElementById('manageResourceModal'));
+                    manageModal.show();
+                })
+                .catch(err => console.error('Error:', err));
+        }
+
+        // دالة تغيير حالة الحجز (بتاعت الجدول السابقة)
+        function changeStatus(bookingId, newStatus) {
+            fetch(`/WorkSpace/ChangeBookingStatus?bookingId=${bookingId}&newStatus=${newStatus}`, { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                if(data.success) {
+                    bootstrap.Modal.getInstance(document.getElementById('manageResourceModal')).hide();
+                    refreshFloor(); 
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            });
+        }
+
+        // دالة الـ Walk-in (الحجز الفوري الجديد)
+        function walkInCheckIn(resourceId) {
+            const email = document.getElementById('walkInEmail').value;
+            
+            // بنكلم دالة الـ CheckIn القديمة اللي كانت في WorkSpaceController
+            fetch(`/WorkSpace/CheckIn?resourceId=${resourceId}&userId=${email}`, { method: 'POST' })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    bootstrap.Modal.getInstance(document.getElementById('manageResourceModal')).hide();
+                    refreshFloor();
+                } else {
+                    alert(data.message);
+                }
+            });
+        }
+
+        // 1. الدالة دي بتفتح المودال وبتسحب المنيو من الداتا بيز
+        function addOrder(bookingId) {
+            document.getElementById('orderBookingId').value = bookingId;
+            document.getElementById('orderQuantity').value = 1; // بنرجع الكمية لـ 1 دايماً
+            
+            // بنسحب المنيو من الكنترولر
+            fetch('/WorkSpace/GetMenu')
+                .then(response => response.json())
+                .then(data => {
+                    const select = document.getElementById('menuItemSelect');
+                    select.innerHTML = ''; // بنفضي القايمة
+                    
+                    if(data.length === 0) {
+                        select.innerHTML = '<option value="">No items in menu</option>';
+                    } else {
+                        data.forEach(item => {
+                            select.innerHTML += `<option value="${item.id}">${item.name} - ${item.price} EGP</option>`;
+                        });
+                    }
+                    
+                    // بنقفل الـ Modal بتاع الحجوزات ونفتح الـ Modal بتاع الطلبات
+                    bootstrap.Modal.getInstance(document.getElementById('manageResourceModal')).hide();
+                    new bootstrap.Modal(document.getElementById('addOrderModal')).show();
+                })
+                .catch(err => console.error('Error fetching menu:', err));
+        }
+
+        // 2. الدالة دي بتبعت الطلب للداتا بيز عشان يتسيف
+        function submitOrder() {
+            const bookingId = document.getElementById('orderBookingId').value;
+            const menuItemId = document.getElementById('menuItemSelect').value;
+            const quantity = document.getElementById('orderQuantity').value;
+
+            if (!menuItemId) {
+                alert("Please select an item from the menu.");
+                return;
+            }
+
+            // بنبعت الداتا للكنترولر
+            fetch(`/WorkSpace/AddOrderToSession?bookingId=${bookingId}&menuItemId=${menuItemId}&quantity=${quantity}`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if(data.success) {
+                    bootstrap.Modal.getInstance(document.getElementById('addOrderModal')).hide();
+                    // ممكن نطلع رسالة Toast أو Alert شيك إن الطلب انضاف
+                    alert("✅ Order added successfully to this session!");
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        // الدالة دي بتكلم الـ Controller وتجيب الكروت الجديدة وتحطها في الصفحة
+        function refreshFloor() {
+            fetch('/WorkSpace/GetLiveFloor')
+            .then(response => response.text())
+            .then(html => {
+                // بنبدل الـ HTML القديم بالجديد من غير Refresh!
+                document.getElementById('live-floor-container').innerHTML = html;
+            })
+            .catch(error => console.error('Error fetching live floor:', error));
+        }
+
+        // السطر ده بيخلي الدالة تشتغل أوتوماتيك كل 5 ثواني (5000 ملي ثانية)
+        setInterval(refreshFloor, 5000);
+    </script>
+}
