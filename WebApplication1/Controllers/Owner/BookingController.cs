@@ -1,15 +1,43 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.DotNet.Scaffolding.Shared.Messaging;
+using WebApplication1.Repositories.Bookings;
 
 namespace WebApplication1.Controllers.Owner
 {
     [Authorize(Roles = "Owner")]
     public class BookingController : Controller
     {
-        public IActionResult Bookings()
+        private readonly IBookingRepo _bookingRepo;
+        public BookingController(IBookingRepo bookingRepo)
         {
-            var workspaceId = User.FindFirst("WorkspaceId")?.Value;
-            return View("Bookings", workspaceId);
+            _bookingRepo = bookingRepo;
+        }
+
+        public async Task<IActionResult> Bookings()
+        {
+            var bookings = await _bookingRepo.GetIncomingBookingAsync();
+            return View(bookings);
+        }
+        [HttpPost]
+        public async Task<IActionResult> AcceptBooking(int id)
+        {
+            var result = await _bookingRepo.UpdateBookingStatusAsync(id, "Active");
+            if (result)
+            {
+                return Json(new { success = true, message = "Booking has been accepted successfuly." });
+            }
+            return Json(new { success = false, message = "Faild to accept the booking." });
+        }
+        [HttpPost]
+        public async Task<IActionResult> RejectBooking(int id)
+        {
+            var result = await _bookingRepo.UpdateBookingStatusAsync(id, "Cancelled");
+            if (result)
+            {
+                return Json(new { success = true, message = "Booking has been rejected and resource freed." });
+            }
+            return Json(new { success = false, message = "Faild to reject the booking." });
         }
     }
 }

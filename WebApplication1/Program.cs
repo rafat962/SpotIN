@@ -4,6 +4,7 @@ using WebApplication1.Data;
 using WebApplication1.Models.Domain.User;
 using WebApplication1.Repositories;
 using WebApplication1.Repositories.Auth;
+using WebApplication1.Repositories.Bookings;
 using WebApplication1.Repositories.Client;
 
 namespace WebApplication1
@@ -23,6 +24,7 @@ namespace WebApplication1
 
             builder.Services.AddScoped<IAuthRepositorie,AuthRepository>();
             builder.Services.AddScoped<IClientRepository, ClientRepository>();
+            builder.Services.AddScoped<IBookingRepo, BookingRepository>();
 
 
             builder.Services.ConfigureApplicationCookie(options =>
