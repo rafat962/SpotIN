@@ -8,45 +8,158 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace WebApplication1.Migrations
 {
     /// <inheritdoc />
-    public partial class FixOrderDetailsCascadeCycle : Migration
+    public partial class init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DeleteData(
-                table: "AspNetUserRoles",
-                keyColumns: new[] { "RoleId", "UserId" },
-                keyValues: new object[] { "2b3c4d5e-6f7a-8b9c-0d1e-2f3a4b5c6d7e", "4d5e6f7a-8b9c-0d1e-2f3a-4b5c6d7e8f9a" });
+            migrationBuilder.CreateTable(
+                name: "AspNetRoles",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
+                    NormalizedName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
+                    ConcurrencyStamp = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetRoles", x => x.Id);
+                });
 
-            migrationBuilder.DeleteData(
-                table: "AspNetUsers",
-                keyColumn: "Id",
-                keyValue: "4d5e6f7a-8b9c-0d1e-2f3a-4b5c6d7e8f9a");
+            migrationBuilder.CreateTable(
+                name: "AspNetUsers",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    FirstName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    LastName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    WalletBalance = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
+                    NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
+                    Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
+                    NormalizedEmail = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
+                    EmailConfirmed = table.Column<bool>(type: "bit", nullable: false),
+                    PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    SecurityStamp = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ConcurrencyStamp = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PhoneNumberConfirmed = table.Column<bool>(type: "bit", nullable: false),
+                    TwoFactorEnabled = table.Column<bool>(type: "bit", nullable: false),
+                    LockoutEnd = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    LockoutEnabled = table.Column<bool>(type: "bit", nullable: false),
+                    AccessFailedCount = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetUsers", x => x.Id);
+                });
 
-            migrationBuilder.AlterColumn<string>(
-                name: "LastName",
-                table: "AspNetUsers",
-                type: "nvarchar(50)",
-                maxLength: 50,
-                nullable: false,
-                oldClrType: typeof(string),
-                oldType: "nvarchar(max)");
+            migrationBuilder.CreateTable(
+                name: "AspNetRoleClaims",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    RoleId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ClaimType = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ClaimValue = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetRoleClaims", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AspNetRoleClaims_AspNetRoles_RoleId",
+                        column: x => x.RoleId,
+                        principalTable: "AspNetRoles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.NoAction);
+                });
 
-            migrationBuilder.AlterColumn<string>(
-                name: "FirstName",
-                table: "AspNetUsers",
-                type: "nvarchar(50)",
-                maxLength: 50,
-                nullable: false,
-                oldClrType: typeof(string),
-                oldType: "nvarchar(max)");
+            migrationBuilder.CreateTable(
+                name: "AspNetUserClaims",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ClaimType = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ClaimValue = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetUserClaims", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AspNetUserClaims_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.NoAction);
+                });
 
-            migrationBuilder.AddColumn<decimal>(
-                name: "WalletBalance",
-                table: "AspNetUsers",
-                type: "decimal(18,2)",
-                nullable: false,
-                defaultValue: 0m);
+            migrationBuilder.CreateTable(
+                name: "AspNetUserLogins",
+                columns: table => new
+                {
+                    LoginProvider = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ProviderKey = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ProviderDisplayName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetUserLogins", x => new { x.LoginProvider, x.ProviderKey });
+                    table.ForeignKey(
+                        name: "FK_AspNetUserLogins_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.NoAction);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AspNetUserRoles",
+                columns: table => new
+                {
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    RoleId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetUserRoles", x => new { x.UserId, x.RoleId });
+                    table.ForeignKey(
+                        name: "FK_AspNetUserRoles_AspNetRoles_RoleId",
+                        column: x => x.RoleId,
+                        principalTable: "AspNetRoles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.NoAction);
+                    table.ForeignKey(
+                        name: "FK_AspNetUserRoles_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.NoAction);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AspNetUserTokens",
+                columns: table => new
+                {
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    LoginProvider = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Value = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetUserTokens", x => new { x.UserId, x.LoginProvider, x.Name });
+                    table.ForeignKey(
+                        name: "FK_AspNetUserTokens_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.NoAction);
+                });
 
             migrationBuilder.CreateTable(
                 name: "WorkSpaces",
@@ -61,6 +174,9 @@ namespace WebApplication1.Migrations
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     HasWiFi = table.Column<bool>(type: "bit", nullable: false),
                     HasAirConditioning = table.Column<bool>(type: "bit", nullable: false),
+                    HasDrinksAndCafeteria = table.Column<bool>(type: "bit", nullable: false),
+                    TotalTables = table.Column<int>(type: "int", nullable: false),
+                    TotalRooms = table.Column<int>(type: "int", nullable: false),
                     OwnerId = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },
                 constraints: table =>
@@ -71,7 +187,7 @@ namespace WebApplication1.Migrations
                         column: x => x.OwnerId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.NoAction);
                 });
 
             migrationBuilder.CreateTable(
@@ -93,7 +209,7 @@ namespace WebApplication1.Migrations
                         column: x => x.WorkSpaceID,
                         principalTable: "WorkSpaces",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.NoAction);
                 });
 
             migrationBuilder.CreateTable(
@@ -116,7 +232,7 @@ namespace WebApplication1.Migrations
                         column: x => x.WorkspaceId,
                         principalTable: "WorkSpaces",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.NoAction);
                 });
 
             migrationBuilder.CreateTable(
@@ -144,7 +260,7 @@ namespace WebApplication1.Migrations
                         column: x => x.ResourceId,
                         principalTable: "Resourses",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.NoAction);
                 });
 
             migrationBuilder.CreateTable(
@@ -158,7 +274,8 @@ namespace WebApplication1.Migrations
                     TotalHoursCost = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     TotalOrdersCost = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     GrandTotal = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    PaymentMethod = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    PaymentMethod = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    WorkSpaceId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -168,7 +285,13 @@ namespace WebApplication1.Migrations
                         column: x => x.BookingId,
                         principalTable: "Bookings",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.NoAction);
+                    table.ForeignKey(
+                        name: "FK_Invoices_WorkSpaces_WorkSpaceId",
+                        column: x => x.WorkSpaceId,
+                        principalTable: "WorkSpaces",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.NoAction);
                 });
 
             migrationBuilder.CreateTable(
@@ -189,7 +312,7 @@ namespace WebApplication1.Migrations
                         column: x => x.BookingId,
                         principalTable: "Bookings",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.NoAction);
                 });
 
             migrationBuilder.CreateTable(
@@ -212,7 +335,7 @@ namespace WebApplication1.Migrations
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.NoAction);
                     table.ForeignKey(
                         name: "FK_WalletTransactions_Bookings_BookingId",
                         column: x => x.BookingId,
@@ -239,7 +362,7 @@ namespace WebApplication1.Migrations
                         column: x => x.MenuItemId,
                         principalTable: "MenuItems",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.NoAction);
                     table.ForeignKey(
                         name: "FK_OrderDetails_Orders_OrderId",
                         column: x => x.OrderId,
@@ -248,27 +371,37 @@ namespace WebApplication1.Migrations
                         onDelete: ReferentialAction.Restrict);
                 });
 
-            migrationBuilder.UpdateData(
-                table: "AspNetUsers",
-                keyColumn: "Id",
-                keyValue: "3c4d5e6f-7a8b-9c0d-1e2f-3a4b5c6d7e8f",
-                columns: new[] { "ConcurrencyStamp", "PasswordHash", "SecurityStamp", "WalletBalance" },
-                values: new object[] { "456c4ada-6705-4e8e-ac2a-cfb285cfbe42", "AQAAAAIAAYagAAAAEIjwWWrkdfyqnOZd7UPsrLEXzcZjua9dwzDF90xKWcWD1SfkFpP3wpu3AXE2L+j38g==", "a5ab9dca-7e81-4cda-9787-358d278af6d9", 500.00m });
+            migrationBuilder.InsertData(
+                table: "AspNetRoles",
+                columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
+                values: new object[,]
+                {
+                    { "1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d", null, "Owner", "OWNER" },
+                    { "2b3c4d5e-6f7a-8b9c-0d1e-2f3a4b5c6d7e", null, "Client", "CLIENT" }
+                });
 
             migrationBuilder.InsertData(
                 table: "AspNetUsers",
                 columns: new[] { "Id", "AccessFailedCount", "ConcurrencyStamp", "Email", "EmailConfirmed", "FirstName", "LastName", "LockoutEnabled", "LockoutEnd", "NormalizedEmail", "NormalizedUserName", "PasswordHash", "PhoneNumber", "PhoneNumberConfirmed", "SecurityStamp", "TwoFactorEnabled", "UserName", "WalletBalance" },
-                values: new object[] { "4d5e6f7a-8b9c-0d1e-2f3a4b5c6d7e8f9a", 0, "72b652b1-9f79-4bbf-9f67-b499d762460f", "client@spotin.com", true, "Normal", "Client", false, null, "CLIENT@SPOTIN.COM", "CLIENT@SPOTIN.COM", "AQAAAAIAAYagAAAAEI6MErKIw8ixld26/U/NeXkSSFPqrGN6z7P99h98M7SkKVR6RzhbtlYE4SubIglD1A==", null, false, "a69bee03-9b28-4f8b-a4b6-8a0a59cab887", false, "client@spotin.com", 150.00m });
-
-            migrationBuilder.InsertData(
-                table: "WorkSpaces",
-                columns: new[] { "Id", "Address", "Description", "HasAirConditioning", "HasWiFi", "Latitude", "Longitude", "Name", "OwnerId" },
-                values: new object[] { 1, "12 Tahrir Street, Dokki, Giza", "Cozy workspace with premium high-speed internet and silent rooms.", true, true, 30.038399999999999, 31.212199999999999, "SpotIn Dokki Branch", "3c4d5e6f-7a8b-9c0d-1e2f-3a4b5c6d7e8f" });
+                values: new object[,]
+                {
+                    { "3c4d5e6f-7a8b-9c0d-1e2f-3a4b5c6d7e8f", 0, "03288b2e-e691-49ea-98cd-8aba42c06180", "owner@spotin.com", true, "Workspace", "Owner", false, null, "OWNER@SPOTIN.COM", "OWNER@SPOTIN.COM", "AQAAAAIAAYagAAAAEMMIHyjxvrL0ICM4uvnPVCoIbSeJ/AJSlZgJdXb6LMgJO2digvbbi5BOpyW9uwtPRg==", null, false, "5f49fe5d-854d-40c4-89d8-d6430cd072e5", false, "owner@spotin.com", 500.00m },
+                    { "4d5e6f7a-8b9c-0d1e-2f3a4b5c6d7e8f9a", 0, "97c0e216-b3cf-42e6-9a39-fd65b3b019db", "client@spotin.com", true, "Normal", "Client", false, null, "CLIENT@SPOTIN.COM", "CLIENT@SPOTIN.COM", "AQAAAAIAAYagAAAAEEHf/076xxiatUxPHRQUSNQ3taSfWfkYvavjSkV71XM1gIdQCX25ar7xN383m4f9rg==", null, false, "a0fd5dc1-cc67-4baa-b8f4-e80ce2e58f89", false, "client@spotin.com", 150.00m }
+                });
 
             migrationBuilder.InsertData(
                 table: "AspNetUserRoles",
                 columns: new[] { "RoleId", "UserId" },
-                values: new object[] { "2b3c4d5e-6f7a-8b9c-0d1e-2f3a4b5c6d7e", "4d5e6f7a-8b9c-0d1e-2f3a4b5c6d7e8f9a" });
+                values: new object[,]
+                {
+                    { "1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d", "3c4d5e6f-7a8b-9c0d-1e2f-3a4b5c6d7e8f" },
+                    { "2b3c4d5e-6f7a-8b9c-0d1e-2f3a4b5c6d7e", "4d5e6f7a-8b9c-0d1e-2f3a4b5c6d7e8f9a" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "WorkSpaces",
+                columns: new[] { "Id", "Address", "Description", "HasAirConditioning", "HasDrinksAndCafeteria", "HasWiFi", "Latitude", "Longitude", "Name", "OwnerId", "TotalRooms", "TotalTables" },
+                values: new object[] { 1, "12 Tahrir Street, Dokki, Giza", "Cozy workspace with premium high-speed internet and silent rooms.", true, false, true, 30.038399999999999, 31.212199999999999, "SpotIn Dokki Branch", "3c4d5e6f-7a8b-9c0d-1e2f-3a4b5c6d7e8f", 0, 0 });
 
             migrationBuilder.InsertData(
                 table: "MenuItems",
@@ -295,8 +428,8 @@ namespace WebApplication1.Migrations
 
             migrationBuilder.InsertData(
                 table: "Invoices",
-                columns: new[] { "Id", "BookingId", "GrandTotal", "IssueDate", "PaymentMethod", "TotalHoursCost", "TotalOrdersCost" },
-                values: new object[] { 1, 1, 120.00m, new DateTime(2026, 6, 29, 21, 0, 0, 0, DateTimeKind.Unspecified), "Cash", 60.00m, 60.00m });
+                columns: new[] { "Id", "BookingId", "GrandTotal", "IssueDate", "PaymentMethod", "TotalHoursCost", "TotalOrdersCost", "WorkSpaceId" },
+                values: new object[] { 1, 1, 120.00m, new DateTime(2026, 6, 29, 21, 0, 0, 0, DateTimeKind.Unspecified), "Cash", 60.00m, 60.00m, 1 });
 
             migrationBuilder.InsertData(
                 table: "Orders",
@@ -313,6 +446,45 @@ namespace WebApplication1.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_AspNetRoleClaims_RoleId",
+                table: "AspNetRoleClaims",
+                column: "RoleId");
+
+            migrationBuilder.CreateIndex(
+                name: "RoleNameIndex",
+                table: "AspNetRoles",
+                column: "NormalizedName",
+                unique: true,
+                filter: "[NormalizedName] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AspNetUserClaims_UserId",
+                table: "AspNetUserClaims",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AspNetUserLogins_UserId",
+                table: "AspNetUserLogins",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AspNetUserRoles_RoleId",
+                table: "AspNetUserRoles",
+                column: "RoleId");
+
+            migrationBuilder.CreateIndex(
+                name: "EmailIndex",
+                table: "AspNetUsers",
+                column: "NormalizedEmail");
+
+            migrationBuilder.CreateIndex(
+                name: "UserNameIndex",
+                table: "AspNetUsers",
+                column: "NormalizedUserName",
+                unique: true,
+                filter: "[NormalizedUserName] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Bookings_ResourceId",
                 table: "Bookings",
                 column: "ResourceId");
@@ -326,6 +498,11 @@ namespace WebApplication1.Migrations
                 name: "IX_Invoices_BookingId",
                 table: "Invoices",
                 column: "BookingId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Invoices_WorkSpaceId",
+                table: "Invoices",
+                column: "WorkSpaceId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_MenuItems_WorkSpaceID",
@@ -372,6 +549,21 @@ namespace WebApplication1.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "AspNetRoleClaims");
+
+            migrationBuilder.DropTable(
+                name: "AspNetUserClaims");
+
+            migrationBuilder.DropTable(
+                name: "AspNetUserLogins");
+
+            migrationBuilder.DropTable(
+                name: "AspNetUserRoles");
+
+            migrationBuilder.DropTable(
+                name: "AspNetUserTokens");
+
+            migrationBuilder.DropTable(
                 name: "Invoices");
 
             migrationBuilder.DropTable(
@@ -379,6 +571,9 @@ namespace WebApplication1.Migrations
 
             migrationBuilder.DropTable(
                 name: "WalletTransactions");
+
+            migrationBuilder.DropTable(
+                name: "AspNetRoles");
 
             migrationBuilder.DropTable(
                 name: "MenuItems");
@@ -395,54 +590,8 @@ namespace WebApplication1.Migrations
             migrationBuilder.DropTable(
                 name: "WorkSpaces");
 
-            migrationBuilder.DeleteData(
-                table: "AspNetUserRoles",
-                keyColumns: new[] { "RoleId", "UserId" },
-                keyValues: new object[] { "2b3c4d5e-6f7a-8b9c-0d1e-2f3a4b5c6d7e", "4d5e6f7a-8b9c-0d1e-2f3a4b5c6d7e8f9a" });
-
-            migrationBuilder.DeleteData(
-                table: "AspNetUsers",
-                keyColumn: "Id",
-                keyValue: "4d5e6f7a-8b9c-0d1e-2f3a4b5c6d7e8f9a");
-
-            migrationBuilder.DropColumn(
-                name: "WalletBalance",
-                table: "AspNetUsers");
-
-            migrationBuilder.AlterColumn<string>(
-                name: "LastName",
-                table: "AspNetUsers",
-                type: "nvarchar(max)",
-                nullable: false,
-                oldClrType: typeof(string),
-                oldType: "nvarchar(50)",
-                oldMaxLength: 50);
-
-            migrationBuilder.AlterColumn<string>(
-                name: "FirstName",
-                table: "AspNetUsers",
-                type: "nvarchar(max)",
-                nullable: false,
-                oldClrType: typeof(string),
-                oldType: "nvarchar(50)",
-                oldMaxLength: 50);
-
-            migrationBuilder.UpdateData(
-                table: "AspNetUsers",
-                keyColumn: "Id",
-                keyValue: "3c4d5e6f-7a8b-9c0d-1e2f-3a4b5c6d7e8f",
-                columns: new[] { "ConcurrencyStamp", "PasswordHash", "SecurityStamp" },
-                values: new object[] { "08fd27cf-3751-4189-ba08-b390dbe23090", "AQAAAAIAAYagAAAAEEdOuzXNdZXDCmJbk3vIvsz+4ftHD+ElefhV22u2kqMzCHxmeXyNM4S2aRLZzsDMjw==", "088154b7-232c-4f64-a4d8-9ee2b4db6953" });
-
-            migrationBuilder.InsertData(
-                table: "AspNetUsers",
-                columns: new[] { "Id", "AccessFailedCount", "ConcurrencyStamp", "Email", "EmailConfirmed", "FirstName", "LastName", "LockoutEnabled", "LockoutEnd", "NormalizedEmail", "NormalizedUserName", "PasswordHash", "PhoneNumber", "PhoneNumberConfirmed", "SecurityStamp", "TwoFactorEnabled", "UserName" },
-                values: new object[] { "4d5e6f7a-8b9c-0d1e-2f3a-4b5c6d7e8f9a", 0, "1be09457-34a2-4068-8eb7-111d1f0fe098", "client@spotin.com", true, "Normal", "Client", false, null, "CLIENT@SPOTIN.COM", "CLIENT@SPOTIN.COM", "AQAAAAIAAYagAAAAELKLmm5bVujq919ilWe6/LYn1r/PsYRIwc6a48Dy/Q0DJ1NAGdJPWm45G2fbXRvVRg==", null, false, "b768aa43-4656-49a4-931e-110afb3dde0c", false, "client@spotin.com" });
-
-            migrationBuilder.InsertData(
-                table: "AspNetUserRoles",
-                columns: new[] { "RoleId", "UserId" },
-                values: new object[] { "2b3c4d5e-6f7a-8b9c-0d1e-2f3a4b5c6d7e", "4d5e6f7a-8b9c-0d1e-2f3a-4b5c6d7e8f9a" });
+            migrationBuilder.DropTable(
+                name: "AspNetUsers");
         }
     }
 }

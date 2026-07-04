@@ -6,6 +6,10 @@ using WebApplication1.Repositories;
 using WebApplication1.Repositories.Auth;
 using WebApplication1.Repositories.Bookings;
 using WebApplication1.Repositories.Client;
+using WebApplication1.Repositories.WorkSpaces;
+using WebApplication1.Repositories.Invoices;
+using WebApplication1.Repositories.Menu;
+using WebApplication1.Repositories.Profile;
 
 namespace WebApplication1
 {
@@ -26,6 +30,11 @@ namespace WebApplication1
             builder.Services.AddScoped<IClientRepository, ClientRepository>();
             builder.Services.AddScoped<IBookingRepo, BookingRepository>();
 
+            builder.Services.AddScoped<IWorkSpaceRepository, WorkSpaceRepository>();
+
+            builder.Services.AddScoped<IMenuItemRepository, MenuItemRepository>();
+            builder.Services.AddScoped<IInvoicesRepo, InvoicesRepository>();
+            builder.Services.AddScoped<IOwnerProfileRepository, OwnerProfileRepository>();
 
             builder.Services.ConfigureApplicationCookie(options =>
             {

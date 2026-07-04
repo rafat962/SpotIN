@@ -17,7 +17,7 @@ namespace WebApplication1.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.23")
+                .HasAnnotation("ProductVersion", "8.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -92,9 +92,14 @@ namespace WebApplication1.Migrations
                     b.Property<decimal>("TotalOrdersCost")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<int>("WorkSpaceId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("BookingId");
+
+                    b.HasIndex("WorkSpaceId");
 
                     b.ToTable("Invoices");
 
@@ -107,7 +112,8 @@ namespace WebApplication1.Migrations
                             IssueDate = new DateTime(2026, 6, 29, 21, 0, 0, 0, DateTimeKind.Unspecified),
                             PaymentMethod = "Cash",
                             TotalHoursCost = 60.00m,
-                            TotalOrdersCost = 60.00m
+                            TotalOrdersCost = 60.00m,
+                            WorkSpaceId = 1
                         });
                 });
 
@@ -533,7 +539,7 @@ namespace WebApplication1.Migrations
                         {
                             Id = "3c4d5e6f-7a8b-9c0d-1e2f-3a4b5c6d7e8f",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "e0dbce9c-7b6c-4260-9644-9a52c164a5c6",
+                            ConcurrencyStamp = "03288b2e-e691-49ea-98cd-8aba42c06180",
                             Email = "owner@spotin.com",
                             EmailConfirmed = true,
                             FirstName = "Workspace",
@@ -541,9 +547,9 @@ namespace WebApplication1.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "OWNER@SPOTIN.COM",
                             NormalizedUserName = "OWNER@SPOTIN.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAELsMjrHzYfc0rDLdVCMZTPtj7lQCXYXQrk1rfLu5syqaYqF3mDTosb3TQ+PZHGBkpA==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEMMIHyjxvrL0ICM4uvnPVCoIbSeJ/AJSlZgJdXb6LMgJO2digvbbi5BOpyW9uwtPRg==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "29a988f5-70e9-49f2-837b-63334891c1db",
+                            SecurityStamp = "5f49fe5d-854d-40c4-89d8-d6430cd072e5",
                             TwoFactorEnabled = false,
                             UserName = "owner@spotin.com",
                             WalletBalance = 500.00m
@@ -552,7 +558,7 @@ namespace WebApplication1.Migrations
                         {
                             Id = "4d5e6f7a-8b9c-0d1e-2f3a4b5c6d7e8f9a",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "a3c8139e-2791-4408-ba94-41eb648cd172",
+                            ConcurrencyStamp = "97c0e216-b3cf-42e6-9a39-fd65b3b019db",
                             Email = "client@spotin.com",
                             EmailConfirmed = true,
                             FirstName = "Normal",
@@ -560,16 +566,16 @@ namespace WebApplication1.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "CLIENT@SPOTIN.COM",
                             NormalizedUserName = "CLIENT@SPOTIN.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEOvnYIqACG6cmbC/YzwtFBJVlvTIxdx3raV6PZPNr2VX8RBltkfjCuhvYIZi5Lo+Bg==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEEHf/076xxiatUxPHRQUSNQ3taSfWfkYvavjSkV71XM1gIdQCX25ar7xN383m4f9rg==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "dd116dd2-cb7d-4cc3-8ed5-81df02f0a9bc",
+                            SecurityStamp = "a0fd5dc1-cc67-4baa-b8f4-e80ce2e58f89",
                             TwoFactorEnabled = false,
                             UserName = "client@spotin.com",
                             WalletBalance = 150.00m
                         });
                 });
 
-            modelBuilder.Entity("WorkSpace", b =>
+            modelBuilder.Entity("WebApplication1.Models.Domain.WorkSpaces.WorkSpace", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -696,12 +702,20 @@ namespace WebApplication1.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("WebApplication1.Models.Domain.WorkSpaces.WorkSpace", "WorkSpace")
+                        .WithMany("Invoices")
+                        .HasForeignKey("WorkSpaceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Booking");
+
+                    b.Navigation("WorkSpace");
                 });
 
             modelBuilder.Entity("MenuItem", b =>
                 {
-                    b.HasOne("WorkSpace", "WorkSpace")
+                    b.HasOne("WebApplication1.Models.Domain.WorkSpaces.WorkSpace", "WorkSpace")
                         .WithMany()
                         .HasForeignKey("WorkSpaceID")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -793,7 +807,7 @@ namespace WebApplication1.Migrations
 
             modelBuilder.Entity("Resourse", b =>
                 {
-                    b.HasOne("WorkSpace", "WorkSpace")
+                    b.HasOne("WebApplication1.Models.Domain.WorkSpaces.WorkSpace", "WorkSpace")
                         .WithMany("Resourses")
                         .HasForeignKey("WorkspaceId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -802,7 +816,7 @@ namespace WebApplication1.Migrations
                     b.Navigation("WorkSpace");
                 });
 
-            modelBuilder.Entity("WorkSpace", b =>
+            modelBuilder.Entity("WebApplication1.Models.Domain.WorkSpaces.WorkSpace", b =>
                 {
                     b.HasOne("WebApplication1.Models.Domain.User.ApplicationUser", "Owner")
                         .WithMany("OwnedWorkspaces")
@@ -854,8 +868,10 @@ namespace WebApplication1.Migrations
                     b.Navigation("OwnedWorkspaces");
                 });
 
-            modelBuilder.Entity("WorkSpace", b =>
+            modelBuilder.Entity("WebApplication1.Models.Domain.WorkSpaces.WorkSpace", b =>
                 {
+                    b.Navigation("Invoices");
+
                     b.Navigation("Resourses");
                 });
 #pragma warning restore 612, 618

@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using WebApplication1.Models.Domain.WorkSpaces;
 using preSpotIn.Models;
 
 namespace WebApplication1.Data
@@ -83,15 +84,17 @@ namespace WebApplication1.Data
             );
 
             // 7. Seed Invoice 
+            // 7. Seed Invoice 
             builder.Entity<Invoice>().HasData(new Invoice
             {
                 Id = 1,
                 BookingId = bookingId,
                 IssueDate = DateTime.Parse("2026-06-29T21:00:00"),
-                TotalHoursCost = 60.00m, 
+                TotalHoursCost = 60.00m,
                 TotalOrdersCost = 60.00m,
                 GrandTotal = 120.00m,
-                PaymentMethod = "Cash"
+                PaymentMethod = "Cash",
+                WorkSpaceId = workspaceId 
             });
         }
     }

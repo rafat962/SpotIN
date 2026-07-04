@@ -1,4 +1,4 @@
-﻿@model List<WorkSpace>
+﻿@model List<WebApplication1.Models.Domain.WorkSpaces.WorkSpace>
 
 @{
     Layout = "_ClientLayout";
@@ -99,7 +99,22 @@
                                     <span class="req-res-rate">EGP @r.HourlyRate/hr</span>
                                 </div>
                                 <div class="req-res-name">@r.Name</div>
-                                <div class="req-res-avail">✓ Available Now</div>
+                                @{
+                                    var currentTime = DateTime.Now;
+                                    // استخدمنا r بدل item عشان يطابق الكود بتاعك
+                                    bool isOccupiedNow = r.Bookings != null && r.Bookings.Any(b => 
+                                        b.Status == "Active" && b.StartTime <= currentTime && (b.EndTime == null || b.EndTime > currentTime)
+                                    );
+                                }
+
+                                @if(isOccupiedNow)
+                                {
+                                    <div class="req-res-avail text-danger" style="color: #dc3545;">✗ Not Available</div>
+                                }
+                                else
+                                {
+                                    <div class="req-res-avail text-success">✓ Available Now</div>
+                                }
                             </div>
                         }
                     </div>
@@ -146,12 +161,16 @@
                     </div>
 
                     <div class="req-time-block">
+                        <label class="req-field-label">Booking Date</label>
+                        <input type="date" id="bookingDate" name="bookingDate" class="req-time-input form-control mb-2" onchange="checkAvailableTimes()" required />
+
                         <label class="req-field-label">Start Time</label>
-                        <input type="datetime-local" name="startTime" id="start-time"
-                               class="req-time-input"
-                               min="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")"
-                               value="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")"
-                               required />
+                        <input type="time" id="startTime" name="startTime" class="req-time-input form-control mb-2" disabled required />
+
+                        <label class="req-field-label">End Time</label>
+                        <input type="time" id="endTime" name="endTime" class="req-time-input form-control" disabled required />
+
+                        <div id="availabilityMessage" class="text-danger mt-2" style="display:none; font-size: 0.85rem; font-weight: 500;"></div>
                     </div>
 
                     <div class="req-sum-divider"></div>
@@ -220,6 +239,105 @@
         if (!rid || rid === '0') {
             e.preventDefault();
             alert('Please select a resource before confirming.');
+        }
+    });
+
+    // المتغير ده هنشيل فيه الحجوزات عشان نستخدمها لما العميل يختار وقت النهاية
+    let currentBookedSlots = []; 
+
+    function checkAvailableTimes() {
+        const resourceId = document.getElementById('selected-resource-id').value;
+        const dateValue = document.getElementById('bookingDate').value;
+        const startTimeInput = document.getElementById('startTime');
+        const endTimeInput = document.getElementById('endTime');
+        const msg = document.getElementById('availabilityMessage');
+
+        if (!dateValue) return;
+
+        // بنصفر الحقول ونقفلها مؤقتاً لحد ما الداتا تيجي
+        startTimeInput.value = '';
+        endTimeInput.value = '';
+        startTimeInput.disabled = true;
+        endTimeInput.disabled = true;
+        msg.style.display = 'none';
+
+        // بنكلم الـ API اللي في الكنترولر
+        fetch(`/Client/GetBookedTimes?resourceId=${resourceId}&date=${dateValue}`)
+            .then(response => response.json())
+            .then(bookedSlots => {
+                currentBookedSlots = bookedSlots;
+                
+                // نفتح حقل وقت البداية للعميل
+                startTimeInput.disabled = false;
+                
+                // لو في حجوزات في اليوم ده، بنعرضله رسالة تنبيه بالأوقات المحجوزة
+                if (bookedSlots.length > 0) {
+                    let timesText = bookedSlots.map(slot => `(${slot.start} to ${slot.end})`).join(' and ');
+                    msg.innerHTML = `Note: This room is already booked from ${timesText}. Please choose another time.`;
+                    msg.style.display = 'block';
+                }
+            })
+            .catch(err => console.error('Error fetching booked times:', err));
+    }
+
+    // 1. فحص وقت البداية
+    document.getElementById('startTime').addEventListener('change', function() {
+        const selectedStart = this.value; 
+        const msg = document.getElementById('availabilityMessage');
+        const endTimeInput = document.getElementById('endTime');
+        const submitBtn = document.querySelector('button[type="submit"]'); // بنمسك زرار التأكيد
+        
+        let conflictSlot = null;
+
+        // بندور لو الوقت اللي اختاره واقع جوه أي فترة محجوزة
+        currentBookedSlots.forEach(slot => {
+            if (selectedStart >= slot.start && selectedStart < slot.end) {
+                conflictSlot = slot;
+            }
+        });
+
+        if (conflictSlot) {
+            // بنسيب القيمة زي ما هي بس بنطلعله رسالة واضحة
+            msg.innerHTML = `⚠️ This time intersects with a reserved booking (${conflictSlot.start} to ${conflictSlot.end}).`;
+            msg.style.display = 'block';
+            
+            endTimeInput.disabled = true; // بنمنعه يختار نهاية
+            endTimeInput.value = '';
+            if(submitBtn) submitBtn.disabled = true; // بنقفل زرار الحجز
+        } else {
+            msg.style.display = 'none';
+            endTimeInput.disabled = false; // نفتحله يختار وقت النهاية
+            if(submitBtn) submitBtn.disabled = false; 
+        }
+    });
+
+    // 2. فحص وقت النهاية (عشان نضمن إن فترته كلها متاحة مفيش حجز في النص)
+    document.getElementById('endTime').addEventListener('change', function() {
+        const selectedStart = document.getElementById('startTime').value;
+        const selectedEnd = this.value;
+        const msg = document.getElementById('availabilityMessage');
+        const submitBtn = document.querySelector('button[type="submit"]');
+
+        let conflictSlot = null;
+        
+        currentBookedSlots.forEach(slot => {
+            // معادلة التعارض الشاملة: (البداية < نهاية القديم) وَ (النهاية > بداية القديم)
+            if (selectedStart < slot.end && selectedEnd > slot.start) {
+                conflictSlot = slot;
+            }
+        });
+
+        if (conflictSlot) {
+            msg.innerHTML = `⚠️ Your selected duration overlaps with an existing booking (${conflictSlot.start} to ${conflictSlot.end}).`;
+            msg.style.display = 'block';
+            if(submitBtn) submitBtn.disabled = true; // بنقفل زرار الحجز
+        } else if (selectedEnd <= selectedStart) {
+            msg.innerHTML = `⚠️ End time must be after start time.`;
+            msg.style.display = 'block';
+            if(submitBtn) submitBtn.disabled = true;
+        } else {
+            msg.style.display = 'none';
+            if(submitBtn) submitBtn.disabled = false; // نفتح زرار الحجز
         }
     });
 </script>

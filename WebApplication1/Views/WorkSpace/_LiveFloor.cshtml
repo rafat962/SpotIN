@@ -1,0 +1,209 @@
+@model WebApplication1.Models.Domain.WorkSpaces.WorkSpace
+
+<div class="row g-3">
+    @if (Model != null && Model.Resourses != null && Model.Resourses.Any())
+    {
+        @foreach (var item in Model.Resourses)
+        {
+            var currentTime = DateTime.Now;
+
+            bool isOccupiedNow = item.Bookings != null && item.Bookings.Any(b =>
+                b.Status == "Active" &&
+                b.StartTime <= currentTime &&
+                (b.EndTime == null || b.EndTime > currentTime)
+            );
+
+            string cardStyle = isOccupiedNow ? "status-occupied" : "status-available";
+            bool isRoom = (item.Type != null && item.Type.Contains("Room")) || (item.Name != null && item.Name.StartsWith("R"));
+            string shapeClass = isRoom ? "resource-room" : "resource-table";
+            string icon = isRoom ? "<i class='fa-solid fa-users'></i>" : "<i class='fa-solid fa-laptop'></i>";
+
+            var activeBooking = isOccupiedNow
+                ? item.Bookings!.First(b => b.Status == "Active" && b.StartTime <= currentTime && (b.EndTime == null || b.EndTime > currentTime))
+                : null;
+
+            <div class="col-xl-2 col-lg-3 col-md-3 col-sm-4 col-6">
+                <div class="card resource-card text-white text-center @cardStyle @shapeClass"
+                     data-bs-toggle="modal"
+                     data-bs-target="#manageModal-@item.Id">
+                    <div class="d-flex flex-column align-items-center justify-content-center w-100">
+                        <span class="resource-icon">@Html.Raw(icon)</span>
+                        <h6 class="m-0 card-title-custom mt-1">@item.Name</h6>
+                        @if (isOccupiedNow)
+                        {
+                            @* <span class="badge bg-white bg-opacity-25 mt-1 small">Live</span> *@
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal fade wf-manage-modal text-dark" id="manageModal-@item.Id" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+                    <div class="modal-content border-0 shadow-lg">
+                        <div class="modal-header wf-modal-header">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="wf-modal-icon @(isOccupiedNow ? "wf-modal-icon--busy" : "wf-modal-icon--free")">
+                                    @Html.Raw(icon)
+                                </div>
+                                <div>
+                                    <span class="wf-modal-type">@(isRoom ? "Room" : "Table")</span>
+                                    <h5 class="modal-title fw-bold mb-0">@item.Name</h5>
+                                    <small class="text-muted">@item.HourlyRate.ToString("N0") EGP / hour</small>
+                                </div>
+                            </div>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+
+                        <div class="modal-body wf-modal-body">
+                            <div class="wf-status-panel @(isOccupiedNow ? "wf-status-panel--occupied" : "wf-status-panel--available")">
+                                @if (isOccupiedNow && activeBooking != null)
+                                {
+                                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                                        <div>
+                                            <span class="badge bg-danger mb-2">Occupied</span>
+                                            <p class="mb-0 fw-semibold">Session in progress</p>
+                                            <small class="text-muted">Started @activeBooking.StartTime.ToString("HH:mm") ? Booking #@activeBooking.Id</small>
+                                        </div>
+                                        <div class="d-flex flex-wrap gap-2">
+                                            <button type="button"
+                                                    class="btn btn-dark btn-sm wf-btn-add-order"
+                                                    onclick="openAddOrderModal(@activeBooking.Id, @System.Text.Json.JsonSerializer.Serialize(item.Name))">
+                                                <i class="bi bi-plus-lg me-1"></i> Add Order
+                                            </button>
+                                            <form asp-action="EndSession" asp-controller="WorkSpace" method="post" class="d-inline" onsubmit="handleEndSession(event, this)">
+                                                <input type="hidden" name="resourceId" value="@item.Id" />
+                                                <button type="submit" class="btn btn-danger btn-sm">
+                                                    <i class="bi bi-stop-circle me-1"></i> End Session
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                                        <div>
+                                            <span class="badge bg-success mb-2">Available</span>
+                                            <p class="mb-0 fw-semibold">Ready for walk-in</p>
+                                            <small class="text-muted">Check in a client to start billing</small>
+                                        </div>
+                                        <form asp-action="CheckIn" asp-controller="WorkSpace" method="post" class="wf-checkin-form">
+                                            <input type="hidden" name="resourceId" value="@item.Id" />
+                                            <div class="input-group input-group-sm">
+                                                <input type="text" name="userId" class="form-control" placeholder="Client email (optional)">
+                                                <button type="submit" class="btn btn-success">
+                                                    <i class="bi bi-box-arrow-in-right me-1"></i> Check-In
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                }
+                            </div>
+
+                            @if (isOccupiedNow && activeBooking != null)
+                            {
+                                <div class="wf-section mt-4">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h6 class="wf-section-title mb-0">
+                                            <i class="bi bi-receipt-cutoff me-2 text-primary"></i>Current Bill
+                                        </h6>
+                                        <button type="button"
+                                                class="btn btn-outline-primary btn-sm rounded-pill"
+                                                onclick="openAddOrderModal(@activeBooking.Id, @System.Text.Json.JsonSerializer.Serialize(item.Name))">
+                                            <i class="bi bi-plus-lg"></i>
+                                        </button>
+                                    </div>
+                                    <div class="wf-orders-box border rounded-3 bg-white" id="session-orders-@activeBooking.Id">
+                                        @{
+                                            var orderDetails = activeBooking.Orders?
+                                                .SelectMany(o => o.OrderDetails ?? Enumerable.Empty<OrderDetails>())
+                                                .ToList() ?? new List<OrderDetails>();
+                                        }
+                                        <partial name="_SessionOrdersList" model="orderDetails" />
+                                    </div>
+                                </div>
+                            }
+
+                            <div class="wf-section mt-4">
+                                <h6 class="wf-section-title mb-3">
+                                    <i class="bi bi-calendar3 me-2 text-secondary"></i>Scheduled Bookings
+                                </h6>
+                                <div class="table-responsive wf-bookings-table-wrap">
+                                    <table class="table table-hover align-middle mb-0 text-center">
+                                        <thead>
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Start</th>
+                                                <th>End</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @if (item.Bookings == null || !item.Bookings.Any(b => b.Status != "Cancelled"))
+                                            {
+                                                <tr>
+                                                    <td colspan="5" class="text-muted py-4">No scheduled bookings found.</td>
+                                                </tr>
+                                            }
+                                            else
+                                            {
+                                                @foreach (var b in item.Bookings.Where(x => x.Status != "Cancelled").OrderBy(x => x.StartTime))
+                                                {
+                                                    <tr>
+                                                        <td>@b.StartTime.ToString("yyyy-MM-dd")</td>
+                                                        <td>@b.StartTime.ToString("HH:mm")</td>
+                                                        <td>@(b.EndTime.HasValue ? b.EndTime.Value.ToString("HH:mm") : "?")</td>
+                                                        <td>
+                                                            <span class="badge wf-status-badge wf-status-badge--@b.Status.ToLower()">@b.Status</span>
+                                                        </td>
+                                                        <td>
+                                                            @if (b.Status == "Pending")
+                                                            {
+                                                                <form asp-action="ChangeBookingStatus" asp-controller="WorkSpace" method="post" class="d-inline">
+                                                                    <input type="hidden" name="bookingId" value="@b.Id" />
+                                                                    <input type="hidden" name="newStatus" value="Active" />
+                                                                    <button type="submit" class="btn btn-sm btn-success me-1">Check-in</button>
+                                                                </form>
+                                                                <form asp-action="ChangeBookingStatus" asp-controller="WorkSpace" method="post" class="d-inline">
+                                                                    <input type="hidden" name="bookingId" value="@b.Id" />
+                                                                    <input type="hidden" name="newStatus" value="Cancelled" />
+                                                                    <button type="submit" class="btn btn-sm btn-outline-danger">Cancel</button>
+                                                                </form>
+                                                            }
+                                                            else if (b.Status == "Active")
+                                                            {
+                                                                <span class="text-success fw-semibold small"><i class="bi bi-circle-fill me-1" style="font-size:0.5rem;"></i>Live</span>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span class="text-muted">?</span>
+                                                            }
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="modal-footer wf-modal-footer border-0">
+                            <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="col-12">
+            <div class="alert alert-light border text-center py-5">
+                <i class="bi bi-grid-3x3-gap fs-2 text-muted d-block mb-2"></i>
+                <p class="text-muted mb-0">No tables or rooms found in this workspace.</p>
+            </div>
+        </div>
+    }
+</div>

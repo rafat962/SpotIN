@@ -14,7 +14,7 @@ namespace WebApplication1.Repositories
             _db = db;
         }
 
-        public async Task<List<WorkSpace>> GetAllWorkspacesAsync()
+        public async Task<List<WebApplication1.Models.Domain.WorkSpaces.WorkSpace>> GetAllWorkspacesAsync()
         {
             return await _db.WorkSpaces
                 .Include(w => w.Resourses)
@@ -33,7 +33,7 @@ namespace WebApplication1.Repositories
                 .FirstOrDefaultAsync(u => u.Id == userId);
         }
 
-        public async Task<List<WorkSpace>> GetAvailableWorkspacesAsync()
+        public async Task<List<WebApplication1.Models.Domain.WorkSpaces.WorkSpace>> GetAvailableWorkspacesAsync()
         {
             return await _db.WorkSpaces
                 .Include(w => w.Resourses.Where(r => r.IsAvailable))
@@ -60,8 +60,6 @@ namespace WebApplication1.Repositories
                 StartTime = startTime,
                 Status = "Active"
             };
-
-            resource.IsAvailable = false;
 
             _db.Bookings.Add(booking);
             var rows = await _db.SaveChangesAsync();

@@ -1,13 +1,13 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-
+using WebApplication1.Models.Domain.WorkSpaces;
 public class Invoice
 {
     public int Id { get; set; }
 
     public int BookingId { get; set; }
     [ForeignKey("BookingId")]
-    public virtual Booking Booking { get; set; }
+    public virtual Booking? Booking { get; set; }
 
     public DateTime IssueDate { get; set; } = DateTime.Now;
 
@@ -24,5 +24,10 @@ public class Invoice
     public decimal GrandTotal { get; set; }
 
     [Required(ErrorMessage = "Payment method is required")]
-    public string PaymentMethod { get; set; } // Cash, CreditCard, VodafoneCash
+    public string? PaymentMethod { get; set; }
+    [Required]
+    public int WorkSpaceId { get; set; }
+
+    [ForeignKey("WorkSpaceId")]
+    public virtual WorkSpace? WorkSpace { get; set; }
 }

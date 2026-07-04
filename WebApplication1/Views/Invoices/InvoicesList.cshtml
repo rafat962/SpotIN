@@ -1,8 +1,158 @@
-﻿@{
+@model IEnumerable<Invoice>
+@{
     Layout = "_OwnerLayout";
-    ViewData["Title"]      = "Invoice";
-    ViewData["PageTitle"]  = "Invoice";
-    ViewData["Breadcrumb"] = "SpotIN · Owner Portal . Invoice";
+    ViewData["Title"] = "Invoices";
+    ViewData["PageTitle"] = "Invoices Management";
+    ViewData["Breadcrumb"] = "SpotIN · Owner Portal . Invoices";
 }
 
-<p>Hager Invoice Logic</p>
+
+
+<div class="container-fluid px-4 py-4">
+
+    <div class="card shadow-sm border-0 rounded-3 mb-4">
+        <div class="card-body p-4 bg-white rounded-3">
+            <form method="get" asp-controller="Invoices" asp-action="InvoicesList" class="row g-3 align-items-end">
+                <div class="col-md-5">
+                    <label class="form-label fw-semibold text-secondary small">Customer Identity</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-person"></i></span>
+                        <input type="text" name="searchString" value="@ViewData["CurrentSearch"]" class="form-control bg-light border-start-0 text-dark" placeholder="Search by customer username...">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold text-secondary small">Payment Gateway</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-wallet2"></i></span>
+                        <select name="paymentMethod" class="form-select bg-light border-start-0 text-dark">
+                            <option value="">All Payment Methods</option>
+                            <option value="Cash" selected="@(ViewData["CurrentPaymentMethod"]?.ToString() == "Cash")">Cash</option>
+                            <option value="CreditCard" selected="@(ViewData["CurrentPaymentMethod"]?.ToString() == "CreditCard")">Credit Card</option>
+                            <option value="VodafoneCash" selected="@(ViewData["CurrentPaymentMethod"]?.ToString() == "VodafoneCash")">Vodafone Cash</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary w-100 fw-bold shadow-sm py-2">
+                            <i class="bi bi-funnel-fill me-1"></i> Apply Filter
+                        </button>
+                        <a asp-action="InvoicesList" class="btn btn-outline-secondary py-2 px-3" title="Clear Filters">
+                            <i class="bi bi-arrow-counterclockwise"></i>
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 rounded-3 bg-white overflow-hidden">
+        <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center px-4 py-3 border-bottom">
+            <h5 class="text-dark fw-bold mb-0"><i class="bi bi-list-task text-primary me-2"></i>Invoices Ledger</h5>
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill fw-bold">
+                Total Records: @Model.Count()
+            </span>
+        </div>
+        
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover align-middle mb-0 text-dark">
+                    <thead class="table-light text-secondary fw-bold small">
+                        <tr>
+                            <th class="ps-4 py-3">Invoice ID</th>
+                            <th>Customer Info</th>
+                            <th>Resource</th>
+                            <th>Issued Date</th>
+                            <th>Grand Total</th>
+                            <th>Method</th>
+                            <th class="text-center pe-4">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="ps-4 text-secondary fw-bold">#@item.Id</td>
+                                <td class="fw-semibold text-dark">@(item.Booking?.User?.UserName ?? "Walk-in Guest")</td>
+                                <td>
+                                    <span class="badge bg-light text-dark border px-2 py-1 rounded-2">
+                                        <i class="bi bi-door-closed text-primary me-1"></i> @(item.Booking?.Resourse?.Name ?? "General Space")
+                                    </span>
+                                </td>
+                                <td class="text-secondary small">@item.IssueDate.ToString("yyyy-MM-dd hh:mm tt")</td>
+                                <td><strong class="text-success">LE @item.GrandTotal.ToString("N2")</strong></td>
+                                <td>
+                                    @if (item.PaymentMethod == "Cash")
+                                    {
+                                        <span class="badge bg-success-subtle text-success border border-success px-2 py-1 rounded-2 small fw-semibold">Cash</span>
+                                    }
+                                    else if (item.PaymentMethod == "CreditCard")
+                                    {
+                                        <span class="badge bg-info-subtle text-info border border-info px-2 py-1 rounded-2 small fw-semibold">Credit Card</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning-subtle text-warning border border-warning px-2 py-1 rounded-2 small fw-semibold">Vodafone Cash</span>
+                                    }
+                                </td>
+                                <td class="text-center pe-4">
+                                    <button type="button" class="btn btn-sm btn-primary view-details-btn px-3 rounded-2 fw-semibold" data-id="@item.Id">
+                                        <i class="bi bi-eye-fill me-1"></i> Details
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                        @if (!Model.Any())
+                        {
+                            <tr>
+                                <td colspan="7" class="text-center text-muted py-5 bg-white">
+                                    <div class="py-4">
+                                        <i class="bi bi-file-earmark-x fs-1 text-secondary opacity-50 d-block mb-3"></i>
+                                        <h6 class="fw-semibold text-dark">No Financial Records Found</h6>
+                                        <p class="text-muted small mb-0">Try adjusting your filter constraints or perform a new search query.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="invoiceModal" tabindex="-1" aria-labelledby="invoiceModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content shadow border-0" id="modalBody">
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    $(document).ready(function () {
+        $('.view-details-btn').off('click').on('click', function (e) {
+            e.preventDefault();
+            var invoiceId = $(this).data('id');
+
+            $('#modalBody').html('<div class="p-5 text-center"><div class="spinner-border text-primary" role="status"></div><p class="mt-2 mb-0 text-muted">Loading invoice breakdown...</p></div>');
+
+            const invoiceModalEl = document.getElementById('invoiceModal');
+            const invoiceModal = bootstrap.Modal.getOrCreateInstance(invoiceModalEl);
+            invoiceModal.show();
+
+            $.ajax({
+                url: '/Invoices/GetDetails/' + invoiceId,
+                type: 'GET',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                success: function (data) {
+                    $('#modalBody').html(data);
+                },
+                error: function (xhr) {
+                    $('#modalBody').html('<div class="p-4 text-center text-danger"><i class="bi bi-exclamation-triangle fs-3 d-block mb-2"></i>Error loading details. Status: ' + xhr.status + '</div>');
+                }
+            });
+        });
+    });
+</script>
+}

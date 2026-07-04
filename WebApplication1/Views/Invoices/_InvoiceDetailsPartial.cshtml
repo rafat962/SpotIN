@@ -1,0 +1,114 @@
+@model Invoice
+
+<div class="modal-header border-0 pb-0 px-4 pt-4">
+    <h5 class="modal-title fw-bold text-dark">
+        <i class="bi bi-receipt text-primary me-2"></i> Invoice Breakdown
+    </h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+
+<div class="modal-body px-4 pb-2" id="printableInvoice">
+    <div class="invoice-receipt p-4 border rounded-3 bg-white shadow-sm">
+        <div class="d-flex justify-content-between align-items-start mb-4">
+            <div>
+                <h3 class="text-primary fw-bold mb-0">SpotIN</h3>
+                <p class="text-muted small mb-0"><i class="bi bi-geo-alt-fill text-danger"></i> Dokki Branch - Workspace</p>
+            </div>
+            <div class="text-end">
+                <h5 class="fw-bold text-dark mb-1">Receipt #@Model.Id</h5>
+                <small class="text-muted d-block">Date: @Model.IssueDate.ToString("yyyy-MM-dd hh:mm tt")</small>
+            </div>
+        </div>
+
+        <hr class="text-muted my-3" />
+
+        <div class="row mb-4">
+            <div class="col-6">
+                <span class="text-muted d-block small mb-1">Billed To:</span>
+                <strong class="text-dark fs-6">@(Model.Booking?.User?.UserName ?? "Walk-in Guest")</strong>
+            </div>
+            <div class="col-6 text-end">
+                <span class="text-muted d-block small mb-1">Booking Reference:</span>
+                <strong class="text-dark d-block mb-1">Booking ID: #@Model.BookingId</strong>
+                <span class="badge bg-secondary px-2 py-1">@(Model.Booking?.Resourse?.Name ?? "Workspace Room")</span>
+            </div>
+        </div>
+
+        <h6 class="fw-bold text-secondary mb-3"><i class="bi bi-calculator-fill me-2"></i> Charge Summary</h6>
+        <div class="table-responsive mb-4">
+            <table class="table table-bordered align-middle mb-0">
+                <thead class="table-light text-secondary">
+                    <tr>
+                        <th class="fw-bold">Description</th>
+                        <th class="text-end pe-3 fw-bold" style="width: 30%;">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="ps-3 py-2 text-secondary">Total Hours Cost (Workspace / Room Usage)</td>
+                        <td class="text-end pe-3 fw-semibold text-dark">LE @Model.TotalHoursCost.ToString("N2")</td>
+                    </tr>
+                    <tr>
+                        <td class="ps-3 py-2 text-secondary">Total Orders Cost (Cafeteria / Menu)</td>
+                        <td class="text-end pe-3 fw-semibold text-dark">LE @Model.TotalOrdersCost.ToString("N2")</td>
+                    </tr>
+                    <tr class="fw-bold fs-6 border-top border-dark">
+                        <td class="ps-3 py-3 text-dark fw-bold">Grand Total Due</td>
+                        <td class="text-end pe-3 text-success fs-5 fw-bold">LE @Model.GrandTotal.ToString("N2")</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        @if (Model.Booking?.Orders != null && Model.Booking.Orders.Any())
+        {
+            <h6 class="fw-bold text-secondary mb-3 mt-4"><i class="bi bi-cup-straw text-warning me-2"></i> Items Ordered Details</h6>
+            <div class="table-responsive border rounded-3 mb-4">
+                <table class="table table-sm table-hover align-middle mb-0 text-center">
+                    <thead class="table-light text-secondary small">
+                        <tr>
+                            <th class="text-start ps-3 fw-bold">Item Name</th>
+                            <th class="fw-bold">Quantity</th>
+                            <th class="text-end pe-3 fw-bold">Price</th>
+                            <th class="text-end pe-3 fw-bold">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody class="small text-dark">
+                        @foreach (var order in Model.Booking.Orders)
+                        {
+                            if (order.OrderDetails != null)
+                            {
+                                foreach (var detail in order.OrderDetails)
+                                {
+                                    <tr>
+                                        <td class="text-start ps-3 fw-medium">@(detail.MenuItem?.Name ?? "Cafeteria Item")</td>
+                                        <td class="fw-bold text-secondary">x @detail.Quantity</td>
+                                        <td class="text-end pe-3 text-muted">LE @detail.PriceAtSale.ToString("N2")</td>
+                                        <td class="text-end pe-3 fw-bold text-primary">LE @((detail.PriceAtSale * detail.Quantity).ToString("N2"))</td>
+                                    </tr>
+                                }
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+        <div class="d-flex justify-content-between align-items-center mt-4 bg-light p-3 rounded-3 border">
+            <div>
+                <small class="text-muted d-block mb-1">Payment Method:</small>
+                <strong class="text-dark"><i class="bi bi-wallet2 text-primary me-1"></i> @Model.PaymentMethod</strong>
+            </div>
+            <div class="text-end">
+                <span class="badge bg-success px-4 py-2 fs-6 shadow-sm"><i class="bi bi-check-all me-1"></i> Paid</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal-footer border-0 pt-0 px-4 pb-4">
+    <button type="button" class="btn btn-secondary fw-semibold px-3" data-bs-dismiss="modal">Close</button>
+    <button type="button" class="btn btn-success fw-semibold px-4 shadow-sm" onclick="printInvoice()">
+        <i class="bi bi-printer-fill me-1"></i> Print Invoice
+    </button>
+</div>
