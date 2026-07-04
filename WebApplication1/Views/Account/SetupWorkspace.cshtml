@@ -19,7 +19,7 @@
     <form asp-controller="Account" asp-action="SaveWorkspace" method="post">
         @Html.AntiForgeryToken()
 
-        <!-- حقول مخفية مدمجة بالـ Model لتمرير بيانات الـ Owner بأمان وثبات -->
+        
         <input type="hidden" asp-for="PendingOwnerId" />
         <input type="hidden" asp-for="FirstName" />
         <input type="hidden" asp-for="LastName" />
@@ -28,7 +28,7 @@
         <div style="font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--primary-blue); margin-bottom: 14px; padding-bottom: 4px; border-bottom: 1px solid var(--border-color);">
             1. Space Details & Location
         </div>
-        
+
         <div class="auth-field">
             <label asp-for="Name">Workspace Name</label>
             <input type="text" asp-for="Name" placeholder="e.g., SpotIn Hub Dokki" required />
@@ -41,15 +41,20 @@
             <span asp-validation-for="Address" style="color: #dc2626; font-size: 12px; margin-top: 4px; display: block;"></span>
         </div>
 
+        <div class="auth-field">
+            <label style="margin-bottom: 8px; display: block;">Select Location on Map</label>
+            <div id="map" style="height: 250px; width: 100%; border-radius: var(--radius-sm); border: 1px solid var(--border-color); margin-bottom: 12px; z-index: 1;"></div>
+        </div>
+
         <div class="auth-field-row" style="margin-bottom: 16px;">
             <div class="auth-field" style="margin-bottom: 0;">
-                <label asp-for="Latitude">Latitude (خط العرض)</label>
-                <input type="number" step="any" asp-for="Latitude" placeholder="30.0444" required />
+                <label asp-for="Latitude">Latitude</label>
+                <input type="number" step="any" asp-for="Latitude" id="lat-input" readonly required style="background-color: #f1f3f5; cursor: not-allowed;" />
                 <span asp-validation-for="Latitude" style="color: #dc2626; font-size: 12px; margin-top: 4px; display: block;"></span>
             </div>
             <div class="auth-field" style="margin-bottom: 0;">
-                <label asp-for="Longitude">Longitude (خط الطول)</label>
-                <input type="number" step="any" asp-for="Longitude" placeholder="31.2357" required />
+                <label asp-for="Longitude">Longitude</label>
+                <input type="number" step="any" asp-for="Longitude" id="lng-input" readonly required style="background-color: #f1f3f5; cursor: not-allowed;" />
                 <span asp-validation-for="Longitude" style="color: #dc2626; font-size: 12px; margin-top: 4px; display: block;"></span>
             </div>
         </div>
@@ -120,3 +125,66 @@
         Need help? <a href="#">Contact SpotIn Support</a>
     </div>
 </div>
+
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+    var defaultLat = 30.0444;
+    var defaultLng = 31.2357;
+
+    var latInput = document.getElementById('lat-input');
+    var lngInput = document.getElementById('lng-input');
+
+    var existingLat = parseFloat(latInput.value);
+    var existingLng = parseFloat(lngInput.value);
+
+    if (!isNaN(existingLat) && !isNaN(existingLng) && existingLat !== 0) {
+    defaultLat = existingLat;
+    defaultLng = existingLng;
+    } else {
+    latInput.value = defaultLat;
+    lngInput.value = defaultLng;
+    }
+
+    var map = L.map('map', {
+    fadeAnimation: false,
+    zoomAnimation: false,
+    inertial: false
+    }).setView([defaultLat, defaultLng], 13);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors',
+    maxZoom: 18
+    }).addTo(map);
+
+    var marker = L.marker([defaultLat, defaultLng], {
+    draggable: true
+    }).addTo(map);
+
+    function updateInputs(lat, lng) {
+    latInput.value = lat.toFixed(6);
+    lngInput.value = lng.toFixed(6);
+    }
+
+    marker.on('dragend', function (event) {
+    var position = marker.getLatLng();
+    updateInputs(position.lat, position.lng);
+    });
+
+    map.on('click', function (event) {
+    var lat = event.latlng.lat;
+    var lng = event.latlng.lng;
+    marker.setLatLng([lat, lng]);
+    updateInputs(lat, lng);
+    });
+
+    setTimeout(function () {
+    map.invalidateSize(true); 
+    map.setView([defaultLat, defaultLng], 7); 
+    marker.setLatLng([defaultLat, defaultLng]);
+    }, 600);
+    });
+</script>
