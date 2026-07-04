@@ -14,15 +14,27 @@ namespace WebApplication1.Controllers.Owner
             _bookingRepo = bookingRepo;
         }
 
-        public async Task<IActionResult> Bookings()
+        public async Task<IActionResult> Bookings(string searchString, string BookingStatus)
         {
             var bookings = await _bookingRepo.GetIncomingBookingAsync();
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                bookings = bookings.Where(b => b.User?.UserName != null &&
+                                               b.User.UserName.Contains(searchString, StringComparison.OrdinalIgnoreCase));
+            }
+            if (!string.IsNullOrEmpty(BookingStatus))
+            {
+                bookings = bookings.Where(b => b.Status == BookingStatus);
+            }
+
+            ViewData["CurrentSearch"] = searchString;
+            ViewData["CurrentStatus"] = BookingStatus;
             return View(bookings);
         }
         [HttpPost]
         public async Task<IActionResult> AcceptBooking(int id)
         {
-            var result = await _bookingRepo.UpdateBookingStatusAsync(id, "Active");
+            var result = await _bookingRepo.UpdateBookingStatusAsync(id, "Completed");
             if (result)
             {
                 return Json(new { success = true, message = "Booking has been accepted successfuly." });
